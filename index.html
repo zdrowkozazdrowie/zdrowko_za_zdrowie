@@ -101,15 +101,6 @@
       padding: 10px 16px; font-size: .88rem; color: var(--muted); box-shadow: var(--shadow);
     }
     .portrait figcaption strong { display: block; color: var(--ink); font-size: .98rem; }
-    .cv-grid { display: grid; grid-template-columns: 1fr; max-width: 760px; margin: 80px auto 0; }
-    .cv-grid h3 { margin-bottom: 18px; }
-    .timeline { list-style: none; margin: 0; padding: 0 0 0 22px; border-left: 2px solid var(--line); }
-    .timeline li { position: relative; padding-bottom: 22px; color: var(--muted); font-size: .95rem; }
-    .timeline li:last-child { padding-bottom: 0; }
-    .timeline li::before { content: ""; position: absolute; left: -29px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
-    .timeline li:nth-child(even)::before { background: var(--teal); box-shadow: 0 0 0 4px var(--teal-soft); }
-    .timeline strong { display: block; color: var(--ink); font-size: 1rem; }
-    .timeline .yr { display: inline-block; font-size: .78rem; font-weight: 700; letter-spacing: .06em; color: var(--green-dark); margin-bottom: 2px; }
     .about-text p { margin: 0 0 1em; }
 
     /* Approach */
@@ -204,9 +195,8 @@
       section { padding: 64px 0; }
       .wrap { padding: 0 16px; }
       .hero { padding: 40px 0 64px; }
-      .hero-grid, .about-grid, .contact-grid, .cv-grid { grid-template-columns: 1fr; gap: 32px; }
+      .hero-grid, .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 32px; }
       .portrait { margin: 0 22px 22px 0; }
-      .cv-grid { margin-top: 56px; gap: 44px; }
       .hero-logo { max-width: 240px; margin: 0 auto; order: -1; }
       .offer-grid, .pillars, .steps, .row { grid-template-columns: 1fr; }
       .menu-toggle { display: block; }
@@ -245,7 +235,7 @@
       <div>
         <div class="eyebrow">Dietetyk kliniczny · Odchudzanie na budżecie</div>
         <h1>Schudnij zdrowo <span>bez wydawania fortuny</span></h1>
-        <p class="lead">Jestem Wiktoria Przybylak, dietetyczka kliniczna. Pomagam schudnąć na tanich, szybkich i naprawdę smacznych posiłkach i bez drogich produktów. Plan dopasuję do Twojego budżetu, dnia i smaków.</p>
+        <p class="lead">Jestem Wiktoria Przybylak, dietetyczka kliniczna. Pomagam schudnąć na tanich, szybkich i naprawdę smacznych posiłkach, bez drogich produktów. Plan dopasuję do Twojego budżetu, dnia i smaków.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#umow" data-book>Umów wizytę</a>
           <a class="btn btn-outline" href="#umow" data-book data-mode="Online">💻 Wizyta online</a>
@@ -271,24 +261,12 @@
           <div class="eyebrow">O mnie</div>
           <h2>Cześć, jestem Wiktoria</h2>
           <p>Gotowanie od zawsze jest moją największą pasją. To ono zaprowadziło mnie do szkoły gastronomicznej, gdzie poznałam kuchnię od podstaw: techniki przygotowania potraw, łączenie smaków i pracę z produktem. Potem przez wiele lat pracowałam w gastronomii na różnych stanowiskach, od kuchni po obsługę gości. Tam nauczyłam się gotować szybko, sprawnie i tak, żeby jedzenie naprawdę smakowało, także w wersji bezglutenowej i wegańskiej.</p>
-          <p>Do kuchennej praktyki dołożyłam solidną wiedzę dietetyczną. Jestem magistrem dietetyki klinicznej, więc wiem, jak jedzenie wpływa na zdrowie i jak dopasować sposób żywienia do chorób, wyników badań i potrzeb organizmu. Znam żywienie z każdej strony, od talerza w restauracji po zalecenia dietoterapeutyczne. Dlatego moje przepisy są zdrowe i jednocześnie po prostu pyszne.</p>
+          <p>Do kuchennej praktyki dołożyłam solidną wiedzę dietetyczną. Jestem magistrem dietetyki klinicznej, więc wiem, jak jedzenie wpływa na zdrowie i jak dopasować sposób żywienia do chorób, wyników badań i potrzeb organizmu. Doświadczenie zdobywałam też w szpitalu, przy przygotowywaniu posiłków dla osób starszych na dietach leczniczych, w gabinecie dietetycznym i w ośrodku rehabilitacyjno-fitness. Znam żywienie z każdej strony, od talerza w restauracji po zalecenia dietoterapeutyczne. Dlatego moje przepisy są zdrowe i jednocześnie po prostu pyszne.</p>
           <p>Mam też talent do oszczędzania. Pokażę Ci, że zdrowe jedzenie nie musi być drogie ani czasochłonne. Moje przepisy są tanie, szybkie i zostawiają po sobie jak najmniej sprzątania.</p>
           <p>Pracuję holistycznie i patrzę na całego człowieka: zdrowie, codzienny rytm, pracę, upodobania i możliwości. Z doświadczenia wiem, że za większością wyborów żywieniowych stoi psychika: emocje, stres i nawyki. Psychologia to moje ogromne zainteresowanie, dlatego poszerzam wiedzę na studiach podyplomowych z psychodietetyki na Uniwersytecie SWPS w Poznaniu.</p>
         </div>
       </div>
 
-      <div class="cv-grid">
-        <div>
-          <h3>Doświadczenie</h3>
-          <ul class="timeline">
-            <li><span class="yr">2025–2026</span><strong>Szpital – oddział urologii i onkologii urologicznej</strong>Praca z dokumentacją medyczną, weryfikacja wyników badań, kontakt z pacjentami i lekarzami.</li>
-            <li><span class="yr">2024</span><strong>Gabinet dietetyki klinicznej i estetycznej</strong>Praktyka zawodowa przy prowadzeniu pacjentów.</li>
-            <li><span class="yr">2024</span><strong>Ośrodek rehabilitacyjno-fitness</strong>Praca z klientami dbającymi o formę i zdrowie.</li>
-            <li><span class="yr">2022–2023</span><strong>Żywienie osób starszych</strong>Przygotowywanie posiłków z uwzględnieniem diet leczniczych w podmiocie leczniczym i domu seniora.</li>
-            <li><span class="yr">2017–2022</span><strong>Gastronomia</strong>Kucharz, barista i obsługa gości. Tworzenie dań i deserów, również bezglutenowych i wegańskich.</li>
-          </ul>
-        </div>
-      </div>
     </div>
   </section>
 
