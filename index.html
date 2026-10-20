@@ -80,6 +80,9 @@
     .hero h1 { font-size: clamp(2.6rem, 6vw, 4.2rem); }
     .hero h1 span { color: var(--green-dark); }
     .hero .lead { font-size: 1.12rem; margin-bottom: 8px; }
+    .hero-points { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 6px; font-size: 1.05rem; }
+    .hero-points li { padding-left: 30px; position: relative; }
+    .hero-points li::before { content: "✓"; position: absolute; left: 0; top: 1px; width: 20px; height: 20px; border-radius: 50%; background: var(--green-soft); color: var(--green-dark); font-weight: 700; font-size: .8rem; display: grid; place-items: center; }
     .signature { font-size: .92rem; color: #8a9891; margin: 0 0 28px; letter-spacing: .02em; }
     .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
     .hero-logo {
@@ -236,7 +239,12 @@
       <div>
         <div class="eyebrow">Dietetyk kliniczny · Odchudzanie na budżecie</div>
         <h1>Schudnij zdrowo <span>bez wydawania fortuny</span></h1>
-        <p class="lead">Jestem magistrem dietetyki i pomagam schudnąć, bazując na tanich, szybkich i naprawdę pysznych posiłkach. Schudniesz najtaniej i najszybciej, jak się da, a przy okazji poprawisz wyniki badań.</p>
+        <p class="lead">Schudniesz, poprawisz wyniki badań i zaoszczędzisz.</p>
+        <ul class="hero-points">
+          <li>tanie produkty z każdego sklepu</li>
+          <li>przepisy na 5–20 minut</li>
+          <li>mało sprzątania po gotowaniu</li>
+        </ul>
         <p class="signature">mgr Wiktoria Przybylak</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#umow" data-book>Umów wizytę</a>
