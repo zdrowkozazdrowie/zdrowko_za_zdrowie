@@ -3,24 +3,568 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hello World</title>
+  <title>Zdrówko za zdrowie – dietetyk mgr Wiktoria Przybylak</title>
+  <meta name="description" content="mgr Wiktoria Przybylak – dietetyk kliniczny. Konsultacje dietetyczne online, indywidualne jadłospisy i e-booki. Holistyczne podejście dopasowane do Twojego życia.">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --teal: #4ecbd2;
+      --teal-soft: #e6f8f9;
+      --green: #3cb54a;
+      --green-dark: #1f8a2c;
+      --green-soft: #ecf8ed;
+      --ink: #1d2b24;
+      --muted: #5b6b63;
+      --line: #dfe8e3;
+      --bg: #fbfdfb;
+      --card: #ffffff;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(29, 43, 36, .08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #f5f7f4;
-      color: #1f2a1f;
+      font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.65;
+      font-size: 17px;
     }
-    h1 { font-size: clamp(2.5rem, 8vw, 5rem); margin: 0; }
-    @media (prefers-color-scheme: dark) {
-      body { background: #141a14; color: #e8efe8; }
+    img { max-width: 100%; display: block; }
+    a { color: var(--green-dark); }
+    h1, h2, h3 { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; line-height: 1.15; margin: 0 0 .5em; }
+    h2 { font-size: clamp(2rem, 4.5vw, 2.8rem); }
+    h3 { font-size: 1.4rem; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    section { padding: 88px 0; scroll-margin-top: 70px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; font-weight: 700; color: var(--green-dark); margin-bottom: 10px; }
+    .lead { color: var(--muted); max-width: 640px; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 24px; border-radius: 999px; border: 2px solid transparent;
+      font: inherit; font-weight: 700; font-size: .98rem; cursor: pointer; text-decoration: none;
+      transition: transform .15s, background .15s, box-shadow .15s;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--green); color: #fff; box-shadow: 0 6px 18px rgba(60, 181, 74, .3); }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-outline { background: #fff; color: var(--ink); border-color: var(--teal); }
+    .btn-outline:hover { background: var(--teal-soft); }
+    .btn-sm { padding: 10px 18px; font-size: .92rem; }
+
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(251, 253, 251, .92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-family: "DM Serif Display", serif; font-size: 1.3rem; }
+    .brand img { width: 42px; height: 42px; }
+    .nav-links { display: flex; align-items: center; gap: 26px; }
+    .nav-links a:not(.btn) { color: var(--ink); text-decoration: none; font-weight: 500; font-size: .96rem; }
+    .nav-links a:not(.btn):hover { color: var(--green-dark); }
+    .menu-toggle { display: none; background: none; border: 0; font-size: 1.6rem; cursor: pointer; color: var(--ink); }
+
+    /* Hero */
+    .hero { padding: 72px 0 88px; background: linear-gradient(160deg, var(--teal-soft) 0%, var(--bg) 55%, var(--green-soft) 100%); }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
+    .hero h1 { font-size: clamp(2.6rem, 6vw, 4.2rem); }
+    .hero h1 span { color: var(--green-dark); }
+    .hero .lead { font-size: 1.12rem; margin-bottom: 28px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero-logo {
+      background: #fff; border-radius: 50%; aspect-ratio: 1; display: grid; place-items: center;
+      box-shadow: var(--shadow); max-width: 420px; margin-left: auto; padding: 14%;
+    }
+    .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+    .badge { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: .88rem; color: var(--muted); }
+
+    /* About */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .about-text p { margin: 0 0 1em; }
+    .edu { display: grid; gap: 14px; }
+    .edu-item { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; display: flex; gap: 16px; }
+    .edu-icon { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 1.3rem; background: var(--green-soft); }
+    .edu-item:nth-child(even) .edu-icon { background: var(--teal-soft); }
+    .edu-item strong { display: block; }
+    .edu-item span { color: var(--muted); font-size: .95rem; }
+
+    /* Approach */
+    .approach { background: var(--green-soft); }
+    .pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 36px; }
+    .pillar { background: #fff; border-radius: var(--radius); padding: 26px 22px; }
+    .pillar .num { font-family: "DM Serif Display", serif; color: var(--teal); font-size: 2rem; line-height: 1; }
+    .pillar h3 { font-size: 1.2rem; margin: 10px 0 6px; }
+    .pillar p { color: var(--muted); margin: 0; font-size: .96rem; }
+
+    /* Offer */
+    .tabs { display: inline-flex; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px; margin: 28px 0 32px; flex-wrap: wrap; }
+    .tab { border: 0; background: none; font: inherit; font-weight: 700; padding: 10px 20px; border-radius: 999px; cursor: pointer; color: var(--muted); }
+    .tab[aria-selected="true"] { background: var(--green); color: #fff; }
+    .offer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .offer-grid[hidden] { display: none; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 28px 24px; display: flex; flex-direction: column; position: relative;
+    }
+    .card.featured { border: 2px solid var(--green); box-shadow: var(--shadow); }
+    .card .tag { position: absolute; top: -12px; left: 24px; background: var(--green); color: #fff; font-size: .75rem; font-weight: 700; padding: 3px 12px; border-radius: 999px; letter-spacing: .04em; }
+    .card h3 { margin-bottom: 4px; }
+    .card .meta { color: var(--muted); font-size: .9rem; margin-bottom: 14px; }
+    .card ul { list-style: none; padding: 0; margin: 0 0 22px; flex: 1; }
+    .card li { padding-left: 26px; position: relative; margin-bottom: 7px; font-size: .96rem; }
+    .card li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+    .price { font-family: "DM Serif Display", serif; font-size: 2.1rem; margin-bottom: 16px; }
+    .price small { font-family: "DM Sans", sans-serif; font-size: .9rem; color: var(--muted); }
+    .ebook-cover {
+      aspect-ratio: 3/4; border-radius: 12px; margin-bottom: 18px; display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 20px; color: #fff; font-family: "DM Serif Display", serif; font-size: 1.5rem; line-height: 1.15;
+      background: linear-gradient(160deg, var(--teal) 0%, var(--green) 100%);
+    }
+    .ebook-cover small { font-family: "DM Sans", sans-serif; font-size: .8rem; opacity: .9; margin-top: 6px; letter-spacing: .08em; text-transform: uppercase; }
+    .card:nth-child(2) .ebook-cover { background: linear-gradient(160deg, var(--green) 0%, var(--green-dark) 100%); }
+    .card:nth-child(3) .ebook-cover { background: linear-gradient(160deg, #7fd8dd 0%, var(--teal) 100%); }
+    .note { color: var(--muted); font-size: .9rem; margin-top: 22px; }
+
+    /* Steps */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 36px; counter-reset: step; }
+    .step { border-top: 3px solid var(--teal); padding-top: 18px; }
+    .step:nth-child(even) { border-color: var(--green); }
+    .step strong { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+    .step p { margin: 0; color: var(--muted); font-size: .96rem; }
+
+    /* Contact */
+    .contact { background: linear-gradient(160deg, var(--teal-soft), var(--green-soft)); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .contact-list { display: grid; gap: 14px; }
+    .contact-item { display: flex; align-items: center; gap: 16px; background: #fff; border-radius: var(--radius); padding: 18px 22px; text-decoration: none; color: var(--ink); transition: transform .15s; }
+    .contact-item:hover { transform: translateX(4px); }
+    .contact-item .ic { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--green-soft); font-size: 1.25rem; flex: none; }
+    .contact-item span { display: block; color: var(--muted); font-size: .85rem; }
+    .contact-item strong { word-break: break-word; }
+
+    footer { padding: 32px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+    footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    footer .brand { font-size: 1.1rem; }
+    footer .brand img { width: 32px; height: 32px; }
+
+    /* Modal */
+    dialog {
+      border: 0; border-radius: 22px; padding: 0; width: min(560px, calc(100% - 24px));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .25); color: var(--ink);
+    }
+    dialog::backdrop { background: rgba(20, 35, 28, .5); backdrop-filter: blur(3px); }
+    .modal-head { padding: 24px 26px 6px; display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+    .modal-head h3 { margin: 0; font-size: 1.6rem; }
+    .modal-head p { margin: 4px 0 0; color: var(--muted); font-size: .94rem; }
+    .close { background: var(--green-soft); border: 0; width: 38px; height: 38px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; flex: none; color: var(--ink); }
+    form { padding: 16px 26px 26px; display: grid; gap: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: grid; gap: 5px; font-weight: 500; font-size: .92rem; }
+    input, select, textarea {
+      font: inherit; font-size: 1rem; padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+    textarea { min-height: 84px; resize: vertical; }
+    .form-note { font-size: .84rem; color: var(--muted); margin: 0; }
+    .modal-success { padding: 10px 26px 30px; text-align: center; }
+    .modal-success .big { font-size: 3rem; }
+
+    /* Floating CTA */
+    .fab { position: fixed; right: 18px; bottom: 18px; z-index: 15; box-shadow: 0 10px 28px rgba(60, 181, 74, .45); }
+
+    @media (max-width: 960px) {
+      .pillars, .steps { grid-template-columns: repeat(2, 1fr); }
+      .offer-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 760px) {
+      section { padding: 64px 0; }
+      .wrap { padding: 0 16px; }
+      .hero { padding: 40px 0 64px; }
+      .hero-grid, .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 32px; }
+      .hero-logo { max-width: 240px; margin: 0 auto; order: -1; }
+      .offer-grid, .pillars, .steps, .row { grid-template-columns: 1fr; }
+      .menu-toggle { display: block; }
+      .nav-links {
+        display: none; position: absolute; top: 68px; left: 0; right: 0; flex-direction: column; align-items: stretch;
+        background: #fff; padding: 12px 16px 20px; gap: 4px; border-bottom: 1px solid var(--line); box-shadow: var(--shadow);
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a:not(.btn) { padding: 10px 4px; }
+      .nav-links .btn { margin-top: 8px; }
+      .tabs { display: flex; }
+      .tab { flex: 1; padding: 10px 12px; }
     }
   </style>
 </head>
 <body>
-  <h1>Hello World!</h1>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><img src="assets/logo.png" alt="">Zdrówko za zdrowie</a>
+    <button class="menu-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+    <nav class="nav-links">
+      <a href="#o-mnie">O mnie</a>
+      <a href="#oferta">Oferta</a>
+      <a href="#ebooki">E-booki</a>
+      <a href="#wspolpraca">Współpraca</a>
+      <a href="#kontakt">Kontakt</a>
+      <a class="btn btn-primary btn-sm" href="#umow" data-book>Umów wizytę</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">Dietetyk kliniczny · Psychodietetyka</div>
+        <h1>Dieta, która <span>pasuje do&nbsp;Twojego życia</span></h1>
+        <p class="lead">Jestem Wiktoria Przybylak. Pomagam zadbać o zdrowie przez jedzenie, bez restrykcji i gotowych schematów. Plan żywienia tworzę z myślą o Tobie, Twoim dniu i Twoich smakach.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#umow" data-book>Umów wizytę</a>
+          <a class="btn btn-outline" href="#umow" data-book data-mode="Online">💻 Wizyta online</a>
+        </div>
+        <div class="badges">
+          <span class="badge">mgr dietetyki klinicznej</span>
+          <span class="badge">Konsultacje online</span>
+          <span class="badge">Indywidualne jadłospisy</span>
+        </div>
+      </div>
+      <div class="hero-logo"><img src="assets/logo.png" alt="Logo Zdrówko za zdrowie"></div>
+    </div>
+  </section>
+
+  <section id="o-mnie">
+    <div class="wrap about-grid">
+      <div class="about-text">
+        <div class="eyebrow">O mnie</div>
+        <h2>Cześć, jestem Wiktoria</h2>
+        <p>Jedzenie towarzyszy mi od zawsze. Gotowanie pokochałam jeszcze jako dziecko, a ta pasja zaprowadziła mnie najpierw do technikum gastronomicznego, a potem na studia dietetyczne. Dlatego moje jadłospisy są nie tylko dobrze zbilansowane, ale też smaczne i łatwe do przygotowania w zwykłej kuchni.</p>
+        <p>Jestem magistrem dietetyki klinicznej. Obecnie rozwijam się w psychodietetyce, bo wiem, że to, co jemy, mocno łączy się z tym, jak myślimy i jak się czujemy.</p>
+        <p>Pracuję holistycznie. Nie wierzę w jedną dietę dla wszystkich. Patrzę na całego człowieka: zdrowie, codzienny rytm, pracę, upodobania i możliwości. Dieta ma pasować do Twojego życia, a nie odwrotnie.</p>
+      </div>
+      <div class="edu">
+        <div class="edu-item">
+          <div class="edu-icon">🎓</div>
+          <div><strong>Magister dietetyki klinicznej</strong><span>Warszawska Akademia Medyczna AMH</span></div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-icon">🧠</div>
+          <div><strong>Psychodietetyka – studia podyplomowe (w trakcie)</strong><span>Uniwersytet SWPS w Poznaniu</span></div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-icon">🍳</div>
+          <div><strong>Technikum gastronomiczne</strong><span>Praktyczna wiedza kulinarna, którą wykorzystuję w każdym jadłospisie</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="approach">
+    <div class="wrap">
+      <div class="eyebrow">Moje podejście</div>
+      <h2>Holistycznie i po ludzku</h2>
+      <p class="lead">Zmiana nawyków to proces. Prowadzę Cię przez niego krok po kroku, z wyrozumiałością i konkretnym planem.</p>
+      <div class="pillars">
+        <div class="pillar"><div class="num">01</div><h3>Indywidualnie</h3><p>Każdy plan powstaje od zera, dla jednej konkretnej osoby.</p></div>
+        <div class="pillar"><div class="num">02</div><h3>Realnie</h3><p>Posiłki dopasowane do Twojego grafiku, budżetu i umiejętności.</p></div>
+        <div class="pillar"><div class="num">03</div><h3>Smacznie</h3><p>Kulinarne doświadczenie sprawia, że zdrowe jedzenie naprawdę smakuje.</p></div>
+        <div class="pillar"><div class="num">04</div><h3>Z głową</h3><p>Uwzględniam emocje i nawyki, nie tylko kalorie.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="oferta">
+    <div class="wrap">
+      <div class="eyebrow">Oferta i cennik</div>
+      <h2>Wybierz formę współpracy</h2>
+      <p class="lead">Wszystkie konsultacje odbywają się online, więc możesz spotkać się ze mną z dowolnego miejsca.</p>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-tab="konsultacje">Konsultacje</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="pakiety">Konsultacje + jadłospisy</button>
+      </div>
+
+      <div class="offer-grid" data-panel="konsultacje">
+        <div class="card">
+          <h3>Konsultacja dietetyczna</h3>
+          <div class="meta">Pierwsza wizyta · ok. 60 min</div>
+          <ul>
+            <li>Szczegółowy wywiad zdrowotny i żywieniowy</li>
+            <li>Analiza wyników badań</li>
+            <li>Omówienie celów i indywidualne zalecenia</li>
+          </ul>
+          <div class="price">180 zł</div>
+          <button class="btn btn-primary" data-book data-service="Konsultacja dietetyczna (180 zł)">Umów wizytę</button>
+        </div>
+        <div class="card">
+          <h3>Wizyta kontrolna</h3>
+          <div class="meta">ok. 30–40 min</div>
+          <ul>
+            <li>Podsumowanie postępów</li>
+            <li>Modyfikacja zaleceń</li>
+            <li>Odpowiedzi na Twoje pytania</li>
+          </ul>
+          <div class="price">120 zł</div>
+          <button class="btn btn-primary" data-book data-service="Wizyta kontrolna (120 zł)">Umów wizytę</button>
+        </div>
+        <div class="card">
+          <h3>Analiza jadłospisu</h3>
+          <div class="meta">Bez wizyty, na podstawie dzienniczka</div>
+          <ul>
+            <li>Ocena Twojego obecnego sposobu żywienia (3–7 dni)</li>
+            <li>Pisemne wskazówki, co poprawić</li>
+            <li>Lista prostych zamienników</li>
+          </ul>
+          <div class="price">150 zł</div>
+          <button class="btn btn-primary" data-book data-service="Analiza jadłospisu (150 zł)">Zamów</button>
+        </div>
+      </div>
+
+      <div class="offer-grid" data-panel="pakiety" hidden>
+        <div class="card">
+          <h3>Konsultacja + jadłospis 7 dni</h3>
+          <div class="meta">Dobry start</div>
+          <ul>
+            <li>Konsultacja dietetyczna (ok. 60 min)</li>
+            <li>Indywidualny jadłospis na 7 dni</li>
+            <li>Lista zakupów i przepisy</li>
+          </ul>
+          <div class="price">350 zł</div>
+          <button class="btn btn-primary" data-book data-service="Konsultacja + jadłospis 7 dni (350 zł)">Umów wizytę</button>
+        </div>
+        <div class="card featured">
+          <span class="tag">NAJCZĘŚCIEJ WYBIERANY</span>
+          <h3>Pakiet miesięczny</h3>
+          <div class="meta">Konsultacja + jadłospis 14 dni</div>
+          <ul>
+            <li>Konsultacja dietetyczna (ok. 60 min)</li>
+            <li>Jadłospis na 14 dni z listą zakupów</li>
+            <li>Wizyta kontrolna po 4 tygodniach</li>
+            <li>Kontakt mailowy przez cały miesiąc</li>
+          </ul>
+          <div class="price">550 zł</div>
+          <button class="btn btn-primary" data-book data-service="Pakiet miesięczny (550 zł)">Umów wizytę</button>
+        </div>
+        <div class="card">
+          <h3>Pakiet 3-miesięczny</h3>
+          <div class="meta">Trwała zmiana nawyków</div>
+          <ul>
+            <li>Konsultacja dietetyczna (ok. 60 min)</li>
+            <li>3 jadłospisy po 14 dni</li>
+            <li>3 wizyty kontrolne</li>
+            <li>Stały kontakt mailowy</li>
+          </ul>
+          <div class="price">1400 zł <small>/ 3 mies.</small></div>
+          <button class="btn btn-primary" data-book data-service="Pakiet 3-miesięczny (1400 zł)">Umów wizytę</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ebooki" style="background: var(--teal-soft);">
+    <div class="wrap">
+      <div class="eyebrow">Sklep</div>
+      <h2>E-booki</h2>
+      <p class="lead">Sprawdzone przepisy i wiedza w wygodnej formie PDF, do pobrania na telefon, tablet lub komputer.</p>
+      <div class="offer-grid" style="margin-top:32px">
+        <div class="card">
+          <div class="ebook-cover">Zdrowe śniadania<small>E-book · PDF</small></div>
+          <h3>Zdrowe śniadania</h3>
+          <div class="meta">Szybkie i sycące pomysły na dobry początek dnia</div>
+          <div class="price">39 zł</div>
+          <button class="btn btn-primary" data-ebook="Zdrowe śniadania (39 zł)">Kup e-book</button>
+        </div>
+        <div class="card">
+          <div class="ebook-cover">Meal prep na cały tydzień<small>E-book · PDF</small></div>
+          <h3>Meal prep na cały tydzień</h3>
+          <div class="meta">Gotuj raz, jedz zdrowo przez kilka dni</div>
+          <div class="price">49 zł</div>
+          <button class="btn btn-primary" data-ebook="Meal prep na cały tydzień (49 zł)">Kup e-book</button>
+        </div>
+        <div class="card">
+          <div class="ebook-cover">Słodkości bez wyrzutów<small>E-book · PDF</small></div>
+          <h3>Słodkości bez wyrzutów</h3>
+          <div class="meta">Desery z lepszym składem</div>
+          <div class="price">39 zł</div>
+          <button class="btn btn-primary" data-ebook="Słodkości bez wyrzutów (39 zł)">Kup e-book</button>
+        </div>
+      </div>
+      <p class="note">Po złożeniu zamówienia odezwę się z danymi do płatności, a po jej zaksięgowaniu wyślę e-booka na Twój adres e-mail.</p>
+    </div>
+  </section>
+
+  <section id="wspolpraca">
+    <div class="wrap">
+      <div class="eyebrow">Jak to działa</div>
+      <h2>Współpraca krok po kroku</h2>
+      <div class="steps">
+        <div class="step"><strong>1. Umów wizytę</strong><p>Wybierz usługę i zaproponuj termin w formularzu albo zadzwoń.</p></div>
+        <div class="step"><strong>2. Potwierdzenie</strong><p>Odezwę się, potwierdzę termin i prześlę krótką ankietę.</p></div>
+        <div class="step"><strong>3. Konsultacja online</strong><p>Spotykamy się przez wideorozmowę, a link dostaniesz mailem.</p></div>
+        <div class="step"><strong>4. Twój plan</strong><p>Otrzymujesz zalecenia lub jadłospis i wsparcie w jego wdrożeniu.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="kontakt" class="contact">
+    <div class="wrap contact-grid">
+      <div>
+        <div class="eyebrow">Kontakt</div>
+        <h2>Porozmawiajmy o Twoim zdrowiu</h2>
+        <p class="lead">Masz pytania albo nie wiesz, którą opcję wybrać? Napisz lub zadzwoń, a chętnie pomogę.</p>
+        <a class="btn btn-primary" href="#umow" data-book>Umów wizytę</a>
+      </div>
+      <div class="contact-list">
+        <a class="contact-item" href="tel:+48786893531"><div class="ic">📞</div><div><span>Telefon</span><strong>+48 786 893 531</strong></div></a>
+        <a class="contact-item" href="mailto:wiktoriaprzybylak9@wp.pl"><div class="ic">✉️</div><div><span>E-mail</span><strong>wiktoriaprzybylak9@wp.pl</strong></div></a>
+        <a class="contact-item" href="https://www.instagram.com/zdrowko_za_zdrowie/" target="_blank" rel="noopener"><div class="ic">📷</div><div><span>Instagram</span><strong>@zdrowko_za_zdrowie</strong></div></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="assets/logo.png" alt="">Zdrówko za zdrowie</a>
+    <div>© <span id="year"></span> mgr Wiktoria Przybylak · Dietetyk kliniczny</div>
+  </div>
+</footer>
+
+<a class="btn btn-primary fab" href="#umow" data-book>📅 Umów wizytę</a>
+
+<dialog id="modal" aria-labelledby="modal-title">
+  <div class="modal-head">
+    <div>
+      <h3 id="modal-title">Umów wizytę</h3>
+      <p id="modal-sub">Wypełnij formularz, a potwierdzę termin mailowo lub telefonicznie.</p>
+    </div>
+    <button class="close" type="button" aria-label="Zamknij" data-close>×</button>
+  </div>
+  <form id="booking-form">
+    <label id="service-field">Usługa
+      <select name="service" id="service" required>
+        <optgroup label="Konsultacje">
+          <option>Konsultacja dietetyczna (180 zł)</option>
+          <option>Wizyta kontrolna (120 zł)</option>
+          <option>Analiza jadłospisu (150 zł)</option>
+        </optgroup>
+        <optgroup label="Konsultacje + jadłospisy">
+          <option>Konsultacja + jadłospis 7 dni (350 zł)</option>
+          <option>Pakiet miesięczny (550 zł)</option>
+          <option>Pakiet 3-miesięczny (1400 zł)</option>
+        </optgroup>
+        <optgroup label="E-booki">
+          <option>Zdrowe śniadania (39 zł)</option>
+          <option>Meal prep na cały tydzień (49 zł)</option>
+          <option>Słodkości bez wyrzutów (39 zł)</option>
+        </optgroup>
+      </select>
+    </label>
+    <div class="row">
+      <label>Imię i nazwisko<input name="name" required autocomplete="name"></label>
+      <label>Telefon<input name="phone" type="tel" autocomplete="tel"></label>
+    </div>
+    <label>E-mail<input name="email" type="email" required autocomplete="email"></label>
+    <div class="row" id="date-fields">
+      <label>Preferowany termin<input name="date" type="date"></label>
+      <label>Godzina<select name="time"><option>Dowolna</option><option>Rano (8–12)</option><option>Popołudnie (12–16)</option><option>Wieczór (16–20)</option></select></label>
+    </div>
+    <label id="mode-field">Forma wizyty
+      <select name="mode"><option>Online</option><option>Telefonicznie</option></select>
+    </label>
+    <label>Wiadomość (opcjonalnie)<textarea name="message" placeholder="Np. cel współpracy, choroby, pytania…"></textarea></label>
+    <button class="btn btn-primary" type="submit" id="submit-btn">Wyślij zgłoszenie</button>
+    <p class="form-note">Kliknięcie otworzy Twój program pocztowy z gotową wiadomością. Wolisz zadzwonić? <a href="tel:+48786893531">+48 786 893 531</a></p>
+  </form>
+  <div class="modal-success" id="success" hidden>
+    <div class="big">💚</div>
+    <h3>Dziękuję!</h3>
+    <p>Jeśli wiadomość się nie wysłała, napisz na <a href="mailto:wiktoriaprzybylak9@wp.pl">wiktoriaprzybylak9@wp.pl</a> lub zadzwoń: <a href="tel:+48786893531">+48 786 893 531</a>.</p>
+    <button class="btn btn-outline" type="button" data-close>Zamknij</button>
+  </div>
+</dialog>
+
+<script>
+  const EMAIL = "wiktoriaprzybylak9@wp.pl";
+  const modal = document.getElementById("modal");
+  const form = document.getElementById("booking-form");
+  const success = document.getElementById("success");
+  const service = document.getElementById("service");
+  let isEbook = false;
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+  form.date.min = new Date().toISOString().slice(0, 10);
+
+  function openModal({ serviceName, mode, ebook = false }) {
+    isEbook = ebook;
+    form.reset();
+    form.hidden = false;
+    success.hidden = true;
+    document.getElementById("modal-title").textContent = ebook ? "Zamów e-book" : "Umów wizytę";
+    document.getElementById("modal-sub").textContent = ebook
+      ? "Podaj dane, a prześlę informacje o płatności i e-booka na Twój e-mail."
+      : "Wypełnij formularz, a potwierdzę termin mailowo lub telefonicznie.";
+    document.getElementById("date-fields").hidden = ebook;
+    document.getElementById("mode-field").hidden = ebook;
+    document.getElementById("submit-btn").textContent = ebook ? "Zamów e-book" : "Wyślij zgłoszenie";
+    if (serviceName) service.value = serviceName;
+    if (mode) form.mode.value = mode;
+    modal.showModal();
+  }
+
+  document.querySelectorAll("[data-book]").forEach(el => el.addEventListener("click", e => {
+    e.preventDefault();
+    closeMenu();
+    openModal({ serviceName: el.dataset.service, mode: el.dataset.mode });
+  }));
+  document.querySelectorAll("[data-ebook]").forEach(el => el.addEventListener("click", () =>
+    openModal({ serviceName: el.dataset.ebook, ebook: true })));
+  modal.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", () => modal.close()));
+  modal.addEventListener("click", e => { if (e.target === modal) modal.close(); });
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const f = form.elements;
+    const lines = [
+      `${isEbook ? "Zamówienie e-booka" : "Usługa"}: ${f.service.value}`,
+      `Imię i nazwisko: ${f.name.value}`,
+      `E-mail: ${f.email.value}`,
+      f.phone.value && `Telefon: ${f.phone.value}`,
+      !isEbook && `Forma wizyty: ${f.mode.value}`,
+      !isEbook && `Preferowany termin: ${f.date.value || "do ustalenia"}, ${f.time.value}`,
+      f.message.value && `\nWiadomość:\n${f.message.value}`
+    ].filter(Boolean);
+    const subject = `${isEbook ? "Zamówienie e-booka" : "Rezerwacja wizyty"}: ${f.service.value}`;
+    window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
+    form.hidden = true;
+    success.hidden = false;
+  });
+
+  // Offer tabs
+  document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t === tab));
+    document.querySelectorAll("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== tab.dataset.tab);
+  }));
+
+  // Mobile menu
+  const toggle = document.querySelector(".menu-toggle");
+  const links = document.querySelector(".nav-links");
+  function closeMenu() { links.classList.remove("open"); toggle.setAttribute("aria-expanded", "false"); }
+  toggle.addEventListener("click", () => {
+    const open = links.classList.toggle("open");
+    toggle.setAttribute("aria-expanded", open);
+  });
+  links.querySelectorAll("a:not([data-book])").forEach(a => a.addEventListener("click", closeMenu));
+</script>
 </body>
 </html>
