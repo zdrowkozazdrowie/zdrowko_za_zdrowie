@@ -89,7 +89,27 @@
     .badge { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: .88rem; color: var(--muted); }
 
     /* About */
-    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .about-grid { display: grid; grid-template-columns: 0.85fr 1fr; gap: 56px; align-items: center; }
+    .portrait { margin: 0; position: relative; max-width: 440px; isolation: isolate; }
+    .portrait::before {
+      content: ""; position: absolute; inset: 22px -22px -22px 22px; border-radius: 28px;
+      background: linear-gradient(160deg, var(--teal) 0%, var(--green) 100%); z-index: -1;
+    }
+    .portrait img { width: 100%; height: auto; aspect-ratio: 4/5; object-fit: cover; object-position: 50% 30%; border-radius: 28px; box-shadow: var(--shadow); }
+    .portrait figcaption {
+      position: absolute; left: 18px; bottom: 18px; background: rgba(255,255,255,.94); border-radius: 14px;
+      padding: 10px 16px; font-size: .88rem; color: var(--muted); box-shadow: var(--shadow);
+    }
+    .portrait figcaption strong { display: block; color: var(--ink); font-size: .98rem; }
+    .cv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 80px; }
+    .cv-grid h3 { margin-bottom: 18px; }
+    .timeline { list-style: none; margin: 0; padding: 0 0 0 22px; border-left: 2px solid var(--line); }
+    .timeline li { position: relative; padding-bottom: 22px; color: var(--muted); font-size: .95rem; }
+    .timeline li:last-child { padding-bottom: 0; }
+    .timeline li::before { content: ""; position: absolute; left: -29px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+    .timeline li:nth-child(even)::before { background: var(--teal); box-shadow: 0 0 0 4px var(--teal-soft); }
+    .timeline strong { display: block; color: var(--ink); font-size: 1rem; }
+    .timeline .yr { display: inline-block; font-size: .78rem; font-weight: 700; letter-spacing: .06em; color: var(--green-dark); margin-bottom: 2px; }
     .about-text p { margin: 0 0 1em; }
     .edu { display: grid; gap: 14px; }
     .edu-item { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; display: flex; gap: 16px; }
@@ -190,7 +210,9 @@
       section { padding: 64px 0; }
       .wrap { padding: 0 16px; }
       .hero { padding: 40px 0 64px; }
-      .hero-grid, .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 32px; }
+      .hero-grid, .about-grid, .contact-grid, .cv-grid { grid-template-columns: 1fr; gap: 32px; }
+      .portrait { margin: 0 22px 22px 0; }
+      .cv-grid { margin-top: 56px; gap: 44px; }
       .hero-logo { max-width: 240px; margin: 0 auto; order: -1; }
       .offer-grid, .pillars, .steps, .row { grid-template-columns: 1fr; }
       .menu-toggle { display: block; }
@@ -245,26 +267,56 @@
   </section>
 
   <section id="o-mnie">
-    <div class="wrap about-grid">
-      <div class="about-text">
-        <div class="eyebrow">O mnie</div>
-        <h2>Cześć, jestem Wiktoria</h2>
-        <p>Jedzenie towarzyszy mi od zawsze. Gotowanie pokochałam jeszcze jako dziecko, a ta pasja zaprowadziła mnie najpierw do technikum gastronomicznego, a potem na studia dietetyczne. Dlatego moje jadłospisy są nie tylko dobrze zbilansowane, ale też smaczne i łatwe do przygotowania w zwykłej kuchni.</p>
-        <p>Jestem magistrem dietetyki klinicznej. Obecnie rozwijam się w psychodietetyce, bo wiem, że to, co jemy, mocno łączy się z tym, jak myślimy i jak się czujemy.</p>
-        <p>Pracuję holistycznie. Nie wierzę w jedną dietę dla wszystkich. Patrzę na całego człowieka: zdrowie, codzienny rytm, pracę, upodobania i możliwości. Dieta ma pasować do Twojego życia, a nie odwrotnie.</p>
+    <div class="wrap">
+      <div class="about-grid">
+        <figure class="portrait">
+          <img src="assets/wiktoria.jpg" alt="mgr Wiktoria Przybylak, dietetyk kliniczny" width="1126" height="1876" loading="lazy">
+          <figcaption><strong>mgr Wiktoria Przybylak</strong>Dietetyk kliniczny</figcaption>
+        </figure>
+        <div class="about-text">
+          <div class="eyebrow">O mnie</div>
+          <h2>Cześć, jestem Wiktoria</h2>
+          <p>Jedzenie towarzyszy mi od zawsze. Gotowanie pokochałam jeszcze jako dziecko, a ta pasja zaprowadziła mnie najpierw do technikum gastronomicznego, a potem na studia dietetyczne. Dlatego moje jadłospisy są nie tylko dobrze zbilansowane, ale też smaczne i łatwe do przygotowania w zwykłej kuchni.</p>
+          <p>Jestem magistrem dietetyki klinicznej, a wcześniej ukończyłam dietoprofilaktykę i dietoterapię. Doświadczenie zdobywałam w szpitalu, przy żywieniu osób starszych na dietach leczniczych, w ośrodku rehabilitacyjno-fitness i przez lata w gastronomii, gdzie przygotowywałam także dania bezglutenowe i wegańskie. Obecnie rozwijam się w psychodietetyce, bo to, co jemy, mocno łączy się z tym, jak myślimy i jak się czujemy.</p>
+          <p>Pracuję holistycznie. Nie wierzę w jedną dietę dla wszystkich. Patrzę na całego człowieka: zdrowie, codzienny rytm, pracę, upodobania i możliwości. Dieta ma pasować do Twojego życia, a nie odwrotnie.</p>
+        </div>
       </div>
-      <div class="edu">
-        <div class="edu-item">
-          <div class="edu-icon">🎓</div>
-          <div><strong>Magister dietetyki klinicznej</strong><span>Specjalizacja w żywieniu w chorobach i profilaktyce zdrowotnej</span></div>
+
+      <div class="cv-grid">
+        <div>
+          <h3>Wykształcenie</h3>
+          <div class="edu">
+            <div class="edu-item">
+              <div class="edu-icon">🎓</div>
+              <div><strong>Magister dietetyki klinicznej</strong><span>2024–2026</span></div>
+            </div>
+            <div class="edu-item">
+              <div class="edu-icon">🎓</div>
+              <div><strong>Licencjat – dietoprofilaktyka i dietoterapia</strong><span>Akademia Wychowania Fizycznego im. E. Piaseckiego w Poznaniu · 2021–2024</span></div>
+            </div>
+            <div class="edu-item">
+              <div class="edu-icon">🧠</div>
+              <div><strong>Psychodietetyka – studia podyplomowe (w trakcie)</strong><span>Uniwersytet SWPS w Poznaniu</span></div>
+            </div>
+            <div class="edu-item">
+              <div class="edu-icon">📜</div>
+              <div><strong>Szkolenie specjalistyczne „Psychodietetyka”</strong><span>Akademia Dietetyki, Łódź · certyfikat · 2024</span></div>
+            </div>
+            <div class="edu-item">
+              <div class="edu-icon">🍳</div>
+              <div><strong>Technik żywienia i usług gastronomicznych</strong><span>Zespół Szkół Gastronomicznych im. K. Libelta w Poznaniu · kwalifikacja T.6</span></div>
+            </div>
+          </div>
         </div>
-        <div class="edu-item">
-          <div class="edu-icon">🧠</div>
-          <div><strong>Psychodietetyka – studia podyplomowe (w trakcie)</strong><span>Uniwersytet SWPS w Poznaniu</span></div>
-        </div>
-        <div class="edu-item">
-          <div class="edu-icon">🍳</div>
-          <div><strong>Technikum gastronomiczne</strong><span>Praktyczna wiedza kulinarna, którą wykorzystuję w każdym jadłospisie</span></div>
+        <div>
+          <h3>Doświadczenie</h3>
+          <ul class="timeline">
+            <li><span class="yr">2025–2026</span><strong>Szpital – oddział urologii i onkologii urologicznej</strong>Praca z dokumentacją medyczną, weryfikacja wyników badań, kontakt z pacjentami i lekarzami.</li>
+            <li><span class="yr">2024</span><strong>Gabinet dietetyki klinicznej i estetycznej</strong>Praktyka zawodowa przy prowadzeniu pacjentów.</li>
+            <li><span class="yr">2024</span><strong>Ośrodek rehabilitacyjno-fitness</strong>Praca z klientami dbającymi o formę i zdrowie.</li>
+            <li><span class="yr">2022–2023</span><strong>Żywienie osób starszych</strong>Przygotowywanie posiłków z uwzględnieniem diet leczniczych w podmiocie leczniczym i domu seniora.</li>
+            <li><span class="yr">2017–2022</span><strong>Gastronomia</strong>Kucharz, barista i obsługa gości. Tworzenie dań i deserów, również bezglutenowych i wegańskich.</li>
+          </ul>
         </div>
       </div>
     </div>
