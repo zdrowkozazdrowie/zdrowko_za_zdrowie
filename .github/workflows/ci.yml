@@ -1,0 +1,192 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  CLOUDFLARE_PROJECT: ${{ vars.CLOUDFLARE_PROJECT || 'zdrowko-za-zdrowie' }}
+
+jobs:
+  checks:
+    name: Format, lint, types, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+        env: { ALLOW_LOCAL_BACKEND: '1' }
+
+  database:
+    name: Database tests + E2E (local Supabase)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - run: npm ci
+      - name: Start Supabase (migrations + seed)
+        run: npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,postgres-meta
+      - name: SQL tests
+        run: npm run test:db
+      - name: Lint SQL
+        run: npx supabase db lint --level error --fail-on error
+      - name: Build against local Supabase
+        run: |
+          eval "$(npx supabase status -o env | sed 's/^/export /')"
+          SUPABASE_URL="$API_URL" SUPABASE_ANON_KEY="$ANON_KEY" npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: E2E
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  preview:
+    name: Preview deploy (Cloudflare Pages)
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: [checks]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Skip without Cloudflare credentials
+        if: env.CLOUDFLARE_API_TOKEN == '' || vars.SUPABASE_PROJECT_REF == ''
+        run: echo "::notice::Preview skipped – set CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and SUPABASE_PROJECT_REF (see README)."
+      - uses: actions/checkout@v4
+        if: env.CLOUDFLARE_API_TOKEN != '' && vars.SUPABASE_PROJECT_REF != ''
+      - uses: actions/setup-node@v4
+        if: env.CLOUDFLARE_API_TOKEN != '' && vars.SUPABASE_PROJECT_REF != ''
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - name: Build and deploy preview
+        id: deploy
+        if: env.CLOUDFLARE_API_TOKEN != '' && vars.SUPABASE_PROJECT_REF != ''
+        env:
+          SUPABASE_URL: https://${{ vars.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          npm ci
+          npm run build
+          npx wrangler pages project create "$CLOUDFLARE_PROJECT" --production-branch=main >/dev/null 2>&1 || true
+          npx wrangler pages deploy dist --project-name="$CLOUDFLARE_PROJECT" --branch="$BRANCH" --commit-dirty=true | tee deploy.log
+          url=$(grep -Eo 'https://[a-z0-9.-]+\.pages\.dev' deploy.log | tail -1)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Comment preview URL
+        if: steps.deploy.outputs.url != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --edit-last \
+            --body "🔎 Podgląd: $URL (backend: produkcyjny Supabase)" \
+          || gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} \
+            --body "🔎 Podgląd: $URL (backend: produkcyjny Supabase)"
+
+  deploy:
+    name: Deploy production
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [checks, database]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.SITE_URL || format('https://{0}.pages.dev', vars.CLOUDFLARE_PROJECT || 'zdrowko-za-zdrowie') }}
+    concurrency: { group: deploy-production, cancel-in-progress: false }
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      SUPABASE_URL: https://${{ vars.SUPABASE_PROJECT_REF }}.supabase.co
+      SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+      SITE_URL: ${{ vars.SITE_URL || format('https://{0}.pages.dev', vars.CLOUDFLARE_PROJECT || 'zdrowko-za-zdrowie') }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - run: npm ci
+      - name: Check configuration
+        run: |
+          missing=0
+          for v in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_REF SUPABASE_ANON_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [ -z "${!v}" ]; then echo "::error::Missing $v (see README → Konfiguracja)"; missing=1; fi
+          done
+          if [ -z "${{ vars.ADMIN_EMAILS }}" ]; then echo "::error::Missing variable ADMIN_EMAILS"; missing=1; fi
+          exit $missing
+      - name: Apply database migrations
+        run: |
+          npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          npx supabase db push
+      - name: Configure Supabase (settings, auth)
+        env:
+          ADMIN_EMAILS: ${{ vars.ADMIN_EMAILS }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: node scripts/configure-remote.mjs
+      - name: Build
+        run: npm run build
+      - name: Deploy to Cloudflare Pages
+        run: |
+          npx wrangler pages project create "$CLOUDFLARE_PROJECT" --production-branch=main >/dev/null 2>&1 || true
+          npx wrangler pages deploy dist --project-name="$CLOUDFLARE_PROJECT" --branch=main --commit-dirty=true
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 20); do
+            if curl -fsS "$SITE_URL/" | grep -q 'Schudnij zdrowo'; then ok=1; break; fi
+            sleep 6
+          done
+          [ "${ok:-}" = 1 ] || { echo "::error::$SITE_URL does not serve the new site"; exit 1; }
+          curl -fsS "$SITE_URL/js/home.js" -o /dev/null
+          curl -fsSI "$SITE_URL/" | grep -qi '^content-security-policy:' || { echo "::error::CSP header missing"; exit 1; }
+          count=$(curl -fsS "$SUPABASE_URL/rest/v1/services?select=id" -H "apikey: $SUPABASE_ANON_KEY" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).length))')
+          [ "$count" -ge 1 ] || { echo "::error::Services API returned no rows"; exit 1; }
+          echo "✓ $SITE_URL is live, API returns $count services"
+
+  legacy-redirect:
+    name: Redirect old GitHub Pages address
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    env:
+      SITE_URL: ${{ vars.SITE_URL || format('https://{0}.pages.dev', vars.CLOUDFLARE_PROJECT || 'zdrowko-za-zdrowie') }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/legacy-redirect.mjs "$SITE_URL" _legacy
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _legacy }
+      - id: pages
+        uses: actions/deploy-pages@v4

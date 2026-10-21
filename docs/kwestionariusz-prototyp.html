@@ -1,0 +1,308 @@
+<title>Kwestionariusz psychodietetyczny</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one calm column, one question per card, progress rail on top */
+:root{
+  --bg:#F1F4EE; --card:#FFFFFF; --ink:#1E2620; --muted:#5E6B61; --line:#D7DED1;
+  --accent:#A23B5C; --accent-soft:#F6E4EA; --leaf:#3F7350; --leaf-soft:#E2EEE4;
+  --display:"Young Serif", Georgia, "Times New Roman", serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141915; --card:#1E2520; --ink:#ECEFE9; --muted:#A2ADA4; --line:#334037;
+  --accent:#E3829F; --accent-soft:#3B2530; --leaf:#80B790; --leaf-soft:#223428; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141915; --card:#1E2520; --ink:#ECEFE9; --muted:#A2ADA4; --line:#334037;
+  --accent:#E3829F; --accent-soft:#3B2530; --leaf:#80B790; --leaf-soft:#223428; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;gap:12px;position:relative}
+.sec{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--leaf);white-space:nowrap}
+.rail{flex:1;height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+.rail i{display:block;height:100%;width:0;background:var(--leaf);border-radius:99px;transition:width .4s ease}
+.count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 22px;display:flex;flex-direction:column;gap:18px;animation:in .35s ease both}
+@keyframes in{from{transform:translateY(10px);opacity:.4}to{transform:none;opacity:1}}
+h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:clamp(28px,6vw,38px)}
+h2{font-size:clamp(22px,4.6vw,28px)}
+.hint{color:var(--muted);margin:-8px 0 0;font-size:15px}
+.big-emoji{font-size:54px;line-height:1;display:inline-block;animation:wob 2.4s ease-in-out infinite}
+@keyframes wob{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg) scale(1.05)}50%{transform:rotate(6deg)}}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.opts.wide{grid-template-columns:1fr}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;font:inherit;font-size:15px;color:var(--ink);background:var(--bg);
+  border:2px solid transparent;border-radius:14px;padding:12px 14px;cursor:pointer;transition:transform .15s,border-color .15s,background .15s;min-width:0}
+.opt:hover{transform:translateY(-2px);border-color:var(--line)}
+.opt:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible,.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.opt .e{font-size:24px;flex:none;transition:transform .25s}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt.on .e{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.45) rotate(-10deg)}100%{transform:scale(1)}}
+.opt span:last-child{min-width:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font:inherit;font-weight:600;border:0;border-radius:99px;padding:12px 22px;cursor:pointer;background:var(--accent);color:var(--card);transition:transform .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--muted);padding:12px 10px}
+.btn.soft{background:var(--leaf-soft);color:var(--leaf)}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:var(--muted);min-width:0}
+input[type=text],input[type=number],input[type=time],textarea{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px 14px;width:100%}
+textarea{min-height:110px;resize:vertical}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.unit{position:relative}.unit input{padding-right:46px}.unit b{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-weight:500;color:var(--muted);font-size:14px}
+.other{margin-top:4px}
+.matrix{display:flex;flex-direction:column;gap:14px}
+.mrow{display:flex;flex-direction:column;gap:8px}
+.mrow h3{margin:0;font-size:15px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:2px solid transparent;border-radius:99px;padding:7px 13px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.plate{display:inline-block;border-radius:50%;background:var(--leaf);opacity:.8}
+.scale{display:flex;flex-direction:column;align-items:center;gap:10px}
+.face{font-size:64px;line-height:1;transition:transform .2s}
+.scale input{width:100%;accent-color:var(--accent)}
+.ends{display:flex;justify-content:space-between;width:100%;font-size:13px;color:var(--muted)}
+.val{font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums}
+.note{background:var(--leaf-soft);color:var(--ink);border-radius:14px;padding:14px 16px;font-size:15px}
+.note b{color:var(--leaf)}
+.waist{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:480px){.waist{grid-template-columns:1fr}.waist svg{max-width:190px;margin:0 auto}}
+.waist ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15px}
+.tape{stroke-dasharray:6 5;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-22}}
+.sum{white-space:pre-wrap;font-size:14px;background:var(--bg);border-radius:12px;padding:14px;max-height:320px;overflow:auto;border:1px solid var(--line)}
+.ok{color:var(--leaf);font-weight:600}
+.btn.small{padding:6px 12px;font-size:14px}
+.confirm{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+#rsTop .confirm:not([hidden]){position:absolute;right:0;top:calc(100% + 6px);max-width:calc(100vw - 32px);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.tip{display:flex;gap:12px;align-items:flex-start;border:2px dashed var(--line);border-radius:16px;padding:14px 16px;font-size:15px}
+.tip p{margin:0}.tip .te{font-size:30px;line-height:1;animation:wob 3s ease-in-out infinite}.tip .tl{color:var(--leaf);margin-right:4px}
+.tip>div{display:flex;flex-direction:column;gap:6px;min-width:0}.src{font-size:12.5px;color:var(--muted)}.src a{color:var(--muted)}
+canvas#conf{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="top" id="top" hidden><span class="sec" id="sec"></span><div class="rail"><i id="bar"></i></div><span class="count" id="count"></span><span id="rsTop" class="rsbox"><button class="btn ghost small" data-open title="Zacznij od nowa" aria-label="Zacznij od nowa">↺</button><span class="confirm" hidden>Usunąć odpowiedzi i zacząć od nowa? <button class="btn small" data-yes>Tak</button> <button class="btn ghost small" data-no>Nie</button></span></span></div>
+  <main id="stage"></main>
+</div>
+<canvas id="conf" hidden></canvas>
+
+<script>
+const S={i:-1,a:{}};
+try{const d=JSON.parse(localStorage.getItem('kw-psycho')||'null');if(d&&d.a)Object.assign(S,d)}catch(e){}
+const save=()=>{try{localStorage.setItem('kw-psycho',JSON.stringify(S))}catch(e){}};
+const M=()=>S.a.plec==='Mężczyzna';
+const N=()=>S.a.plec==='Inaczej / wolę formy neutralne';
+const g=(m,f,n)=>M()?m:(N()&&n!=null?n:f);
+const R=x=>typeof x==='function'?x():x;
+const P=s=>{let ex=false,ot=false;if(s.endsWith('!x')){ex=true;s=s.slice(0,-2)}if(s.endsWith('!o')){ot=true;s=s.slice(0,-2)}const[e,t]=s.split('|');return{e,t,ex,ot}};
+
+const Q=[
+// NA START
+{s:'Na start',id:'plec',type:'single',q:'Jak mam się do Ciebie zwracać?',opts:['👩|Kobieta','👨|Mężczyzna','✨|Inaczej / wolę formy neutralne']},
+{s:'Na start',id:'dane',type:'fields',q:'Kilka podstawowych danych',fields:[['imie','Imię','text'],['wiek','Wiek','number','lat'],['wzrost','Wzrost','number','cm'],['masa','Masa ciała','number','kg']]},
+{s:'Na start',id:'talia',type:'waist',tip:"<div class=\"tip\"><span class=\"te\">📏</span><div><p><b class=\"tl\">Czy wiesz, że…</b> dobrą wskazówką dla zdrowia jest talia <b>mniejsza niż połowa wzrostu</b>? Przy 168 cm to poniżej 84 cm. Tłuszcz gromadzący się na brzuchu, w tym ten wokół narządów wewnętrznych (tzw. tłuszcz trzewny), wiąże się z ryzykiem cukrzycy typu 2, nadciśnienia i chorób serca. W badaniu zwykły centymetr wskazywał to ryzyko równie dobrze jak pomiar tłuszczu trzewnego w rezonansie.</p><p><b>Zalecany obwód talii:</b> poniżej <b>80 cm u kobiet</b> i poniżej <b>94 cm u mężczyzn</b>.</p><p class=\"src\">Źródło: <a href=\"https://www.nice.org.uk/news/articles/keep-the-size-of-your-waist-to-less-than-half-of-your-height-nice--recommends\" target=\"_blank\" rel=\"noopener\">NICE 2022</a>; <a href=\"https://www.utupub.fi/items/70306652-8ac2-46cd-8657-82b36d1d1de1/full\" target=\"_blank\" rel=\"noopener\">Ruano i in., Nutrition, Metabolism and Cardiovascular Diseases 2024</a>; <a href=\"https://research.vu.nl/en/publications/waist-circumference-as-a-vital-sign-in-clinical-practice-a-consen/\" target=\"_blank\" rel=\"noopener\">Ross i in., Nature Reviews Endocrinology 2020</a>; <a href=\"https://who.int/publications/i/item/9789241501491\" target=\"_blank\" rel=\"noopener\">WHO 2008</a>; <a href=\"https://www.sciensano.be/en/node/74937\" target=\"_blank\" rel=\"noopener\">Sciensano</a></p></div></div>",q:'Obwód talii'},
+{s:'Na start',id:'cel',type:'multi',q:'Z czym przychodzisz?',hint:'Zaznacz wszystko, co pasuje.',opts:()=>['⚖️|Chcę schudnąć',g('💪|Chcę przytyć lub zbudować mięśnie','💪|Chcę przytyć lub zbudować mięśnie'),'🩺|Dieta przy chorobie','🍽️|Uporządkować jedzenie','🧠|Spokojniejsza relacja z jedzeniem','⚡|Więcej energii','🌱|Zdrowsze nawyki','✍️|Inne!o']},
+{s:'Na start',id:'waga',type:'single',q:'Jak zmieniała się Twoja waga w ostatnim roku?',opts:['➖|Jest stabilna','📉|Spadła o ponad 3 kg','📈|Wzrosła o ponad 3 kg','🎢|Waha się w górę i w dół','🤷|Nie wiem']},
+// ZDROWIE
+{s:'Zdrowie',id:'choroby',type:'multi',q:'Czy masz zdiagnozowane któreś z tych schorzeń?',opts:()=>['🩸|Insulinooporność / stan przedcukrzycowy','💉|Cukrzyca','🦋|Niedoczynność tarczycy / Hashimoto','❤️|Nadciśnienie','🧈|Podwyższony cholesterol',...(M()?[]:['🌸|PCOS / zaburzenia hormonalne']),'🫃|Problemy jelitowe (IBS, wzdęcia)','🔥|Refluks / zgaga','🩹|Anemia','✍️|Inne!o','✅|Nie mam żadnych!x']},
+{s:'Zdrowie',id:'objawy',type:'multi',q:'Czy często masz któreś z tych objawów?',hint:'Zaznacz wszystko, co zdarza się regularnie.',opts:()=>['😵|Osłabienie, zawroty głowy','🥱|Ciągłe zmęczenie','😴|Senność po posiłku','🥶|Często jest mi zimno','💇|Wypadanie włosów, łamliwe paznokcie','🌵|Sucha skóra','🦶|Obrzęki (np. nóg, twarzy)','💓|Kołatanie serca','😓|Nadmierne pocenie się','✋|Drżenie rąk lub silny głód, gdy długo nie jem','🤕|Bóle głowy','🎈|Wzdęcia, bóle brzucha','🔥|Zgaga','🧠|Problemy z koncentracją','😔|Obniżony nastrój',...(M()?[]:['📅|Nieregularne miesiączki']),'✍️|Inne!o','🌿|Nie mam takich objawów!x']},
+{s:'Zdrowie',id:'leki',type:'text',q:'Jakie leki i suplementy przyjmujesz?',hint:()=>'Nazwa i dawka, jeśli pamiętasz.'+(M()?'':' Wpisz też antykoncepcję hormonalną.'),ph:'np. Euthyrox 50 µg rano, witamina D 2000 j.',none:'Nie przyjmuję żadnych'},
+{s:'Zdrowie',id:'alergie',type:'text',q:'Czy masz alergie lub nietolerancje pokarmowe?',ph:'np. laktoza, orzechy, gluten',none:'Nie mam'},
+{s:'Zdrowie',id:'wyproz',type:'single',q:'Jak często się wypróżniasz?',opts:['🗓️|Codziennie','📆|Co 2–3 dni','🐢|Rzadziej niż co 3 dni','🔀|Nieregularnie','💧|Często mam biegunki']},
+{s:'Zdrowie',id:'sen',tip:"<div class=\"tip\"><span class=\"te\">😴</span><div><p><b class=\"tl\">Ciekawostka</b> Krótka noc odbija się na talerzu. Po niewyspaniu jemy następnego dnia średnio <b>o ok. 385 kcal więcej</b>, czyli mniej więcej tyle, ile w 4–5 kromkach chleba.</p><p class=\"src\">Źródło: <a href=\"https://www.kcl.ac.uk/archive/news/kings/newsrecords/2016/11%20november-/sleep-deprivation-may-cause-people-to-eat-more-calories\" target=\"_blank\" rel=\"noopener\">Al Khatib i in., European Journal of Clinical Nutrition 2017</a></p></div></div>",type:'single',q:'Ile zwykle śpisz?',opts:['🥱|Mniej niż 5 h','😪|5–6 h','😴|7–8 h','🛌|Ponad 8 h']},
+{s:'Zdrowie',id:'stres',type:'scale',q:'Jaki jest Twój poziom stresu na co dzień?',lo:'Spokój',hi:'Ogromny stres',faces:['😌','🙂','😐','😟','😫']},
+{s:'Zdrowie',id:'ruch',type:'single',q:'Ile się ruszasz?',opts:['🪑|Głównie siedzę','🚶|Spacery, lekki ruch','🏃|Trening 1–2× w tygodniu','🏋️|Trening 3× w tygodniu lub więcej','🧱|Pracuję fizycznie']},
+{s:'Zdrowie',id:'badania',type:'single',q:()=>g('Kiedy ostatnio robiłeś badania krwi?','Kiedy ostatnio robiłaś badania krwi?','Kiedy były Twoje ostatnie badania krwi?'),hint:'Jeśli masz wyniki, wyślij mi je razem z tym kwestionariuszem (zdjęcie lub PDF).',opts:()=>['🧪|W ostatnich 3 miesiącach','📋|3–12 miesięcy temu','⏳|Ponad rok temu',g('🤷|Nie pamiętam / nie robiłem','🤷|Nie pamiętam / nie robiłam','🤷|Nie pamiętam / jeszcze nie było')]},
+// UŻYWKI I NAPOJE
+{s:'Używki',id:'alkohol',type:'single',q:'Jak często pijesz alkohol?',opts:['🍻|Kilka razy w tygodniu','🍷|Około raz w tygodniu','🥂|2–3 razy w miesiącu','🍸|Około raz w miesiącu','🌙|Rzadziej','🚫|Nie piję']},
+{s:'Używki',id:'papierosy',type:'single',q:'Czy palisz?',opts:['🚭|Nie palę','🌫️|Okazjonalnie','🚬|Codziennie','💨|E-papierosy / podgrzewacze']},
+{s:'Używki',id:'kawa',type:'single',q:'Ile kaw lub energetyków dziennie?',opts:['🫖|Żadnej','☕|1','☕☕|2–3','⚡|4 lub więcej']},
+{s:'Używki',id:'slodkie',type:'single',q:'Jak często pijesz słodkie napoje lub soki?',opts:['🥤|Codziennie','🧃|Kilka razy w tygodniu','🍹|Rzadko','💧|Nie piję']},
+{s:'Używki',id:'woda',tip:"<div class=\"tip\"><span class=\"te\">💧</span><div><p><b class=\"tl\">Ciekawostka</b> Ok. <b>2 litry dziennie dla kobiet</b> i <b>2,5 litra dla mężczyzn</b>, i to razem z wodą z jedzenia, więc zupa czy arbuz też się liczą. W gabinecie często liczy się 30–35 ml na kilogram: przy 60 kg wychodzi ok. 7–8 szklanek. Przy wyższej masie ciała ten przelicznik zawyża wynik, więc liczy się wtedy inaczej.</p><p class=\"src\">Źródło: <a href=\"https://www.efsa.europa.eu/en/press/news/nda100326\" target=\"_blank\" rel=\"noopener\">EFSA 2010</a>; <a href=\"https://pub.norden.org/nord2023-003/fluid-and-water-balance.html\" target=\"_blank\" rel=\"noopener\">Nordic Nutrition Recommendations 2023</a>; <a href=\"https://www.health.qld.gov.au/__data/assets/pdf_file/0022/144175/est-req.pdf\" target=\"_blank\" rel=\"noopener\">Queensland Health</a></p></div></div>",type:'single',q:'Ile wody wypijasz dziennie?',opts:['💧|Mniej niż 1 l','💧💧|1–1,5 l','💧💧💧|1,5–2 l','🌊|Ponad 2 l']},
+// TWÓJ DZIEŃ
+{s:'Twój dzień',id:'posilki',type:'single',q:'Ile posiłków zwykle jesz?',opts:['1️⃣|1–2','3️⃣|3','4️⃣|4','5️⃣|5 lub więcej','🔀|Bardzo różnie']},
+{s:'Twój dzień',id:'praca',type:'single',q:'Jak wygląda Twoja praca lub nauka?',opts:()=>['🏢|Stacjonarnie','🏠|Zdalnie','🔁|Hybrydowo','🌙|Zmianowo / na noce','🎓|Uczę się',g('🌴|Nie pracuję','🌴|Nie pracuję')]},
+{s:'Twój dzień',id:'godziny',type:'fields',q:'Twój typowy dzień',hint:'Wystarczy w przybliżeniu.',fields:[['wstaje','Wstaję ok.','time'],['pierwszy','Pierwszy posiłek ok.','time'],['spac','Kładę się ok.','time']]},
+{s:'Twój dzień',id:'podgrzac',type:'multi',q:'Czy w pracy lub szkole możesz podgrzać jedzenie?',hint:'Zaznacz, czym dysponujesz.',opts:['📦|Mikrofala','🍞|Toster','♨️|Piekarnik','🫖|Czajnik','❌|Nie mam takiej możliwości!x','🏡|Jem w domu!x']},
+{s:'Twój dzień',id:'gotuje',type:'single',q:'Kto u Ciebie gotuje?',opts:()=>[g('🧑‍🍳|Gotuję sam','👩‍🍳|Gotuję sama','🧑‍🍳|Gotuję samodzielnie'),'👫|Razem z partnerem / rodziną','🍲|Ktoś gotuje za mnie','🥡|Jem głównie na mieście / catering']},
+{s:'Twój dzień',id:'osoby',type:'single',q:'Ile osób będzie jadło te same posiłki?',hint:'Łącznie z Tobą.',opts:['🙋|Tylko ja','👥|2 osoby','👨‍👩‍👦|3 osoby','👨‍👩‍👧‍👦|4 osoby','🏘️|5 lub więcej']},
+{s:'Twój dzień',id:'sprzet',type:'multi',q:'Jaki sprzęt masz w kuchni?',hint:'Zaznacz wszystko, co masz.',opts:['🍹|Blender ręczny','🤖|Robot kuchenny','📦|Mikrofala','🍟|Airfryer','🥧|Piekarnik','🍞|Toster','🧇|Gofrownica','🍖|Opiekacz / grill','🥦|Parowar (do gotowania na parze)','✍️|Inne!o']},
+{s:'Twój dzień',id:'czas',type:'single',q:'Ile czasu dziennie możesz poświęcić na gotowanie?',opts:['⚡|Do 15 min','⏱️|15–30 min','🕐|30–60 min','🍳|Ponad godzinę']},
+{s:'Twój dzień',id:'zapas',type:'single',q:'Czy możesz gotować na 2 dni do przodu?',opts:['👍|Tak, chętnie','🤏|Czasami','🌿|Wolę świeże codziennie']},
+{s:'Twój dzień',id:'sklepy',type:'multi',q:'Gdzie najczęściej robisz zakupy?',opts:['🐞|Biedronka','🛒|Lidl','🏬|Kaufland','🛍️|Auchan','🧺|Carrefour','🦕|Dino','🏪|Netto','🏷️|Aldi','🌼|Stokrotka','🐸|Żabka','🥕|Bazarek / warzywniak','📱|Zakupy online','✍️|Inne!o']},
+// SMAKI I ZMYSŁY
+{s:'Smaki i zmysły',id:'lubi',type:'text',q:'Co lubisz jeść najbardziej?',hint:'Produkty, dania, przekąski. Pisz, co przychodzi Ci do głowy.',ph:'np. kurczak, makaron, jogurt naturalny, kiszone ogórki'},
+{s:'Smaki i zmysły',id:'nielubi',type:'text',q:'Czego nie lubisz albo nie zjesz?',ph:'np. ryby, brokuły, kasza gryczana',none:'Jem prawie wszystko'},
+{s:'Smaki i zmysły',id:'smaki',type:'matrix',mode:'multi',q:'Na jakie smaki masz ochotę o różnych porach?',hint:'Przy każdej porze zaznacz, co lubisz.',rows:['Rano','W południe','Wieczorem','Na przekąskę'],cols:['🍯|Słodki','🧂|Słony','🍋|Kwaśny','🌶️|Ostry','🍄|Wytrawny','🥛|Łagodny']},
+{s:'Smaki i zmysły',id:'porcje',type:'matrix',mode:'single',q:'Jakie porcje wolisz w ciągu dnia?',rows:['Śniadanie','Obiad','Kolacja','Przekąski'],cols:['s|Mała','m|Średnia','l|Duża']},
+{s:'Smaki i zmysły',id:'kons_lubi',type:'multi',q:'Jakie konsystencje lubisz?',opts:['🥨|Chrupiące','🍮|Kremowe, gładkie','🍉|Soczyste','🧈|Miękkie, rozpływające się','🍬|Ciągnące, gumowate','🍚|Sypkie (ryż, kasza)','🥣|Gęste (owsianka, gulasz)','🍓|Kawałki w czymś gładkim (jogurt z owocami)']},
+{s:'Smaki i zmysły',id:'kons_nie',type:'multi',q:'Jakich konsystencji nie lubisz?',opts:['🦪|Śliskie (np. gotowana cebula)','🥩|Żylaste, włókniste','🥔|Papkowate','🫘|Z grudkami','🥨|Twarde, chrupiące','🍬|Ciągnące, gumowate','🍓|Kawałki w czymś gładkim','👌|Nic mi nie przeszkadza!x']},
+{s:'Smaki i zmysły',id:'temp',tip:"<div class=\"tip\"><span class=\"te\">☕</span><div><p><b class=\"tl\">Ciekawostka</b> Ciepły napój pobudza żołądek. W małym badaniu żołądek pracował wyraźniej po gorącej wodzie niż po zimnej, a badani zjadali potem więcej przy posiłku. To ciekawy trop, choć jeszcze nie pewna reguła.</p><p class=\"src\">Źródło: <a href=\"https://d-nb.info/1177661683/34\" target=\"_blank\" rel=\"noopener\">Fujihira i in., European Journal of Nutrition 2019</a></p></div></div>",type:'single',q:'Jakie dania wolisz?',opts:['🍲|Ciepłe','🥗|Zimne','🔄|Rano ciepłe, później zimne','🤷|Bez różnicy']},
+{s:'Smaki i zmysły',id:'talerz',type:'single',q:'Na talerzu wolisz…',opts:['🥘|Wszystko wymieszane (gulasz, sałatka)','🍱|Składniki osobno, żeby się nie stykały','🤷|Bez różnicy']},
+{s:'Smaki i zmysły',id:'zniecheca',type:'multi',q:'Co potrafi zniechęcić Cię do jedzenia?',opts:['👃|Intensywny zapach','👀|Wygląd lub kolor','🌶️|Zbyt ostre przyprawy','🏔️|Za dużo na talerzu','❓|Nowe, nieznane potrawy','📢|Hałas, pośpiech','👌|Nic szczególnego!x']},
+{s:'Smaki i zmysły',id:'nowosci',type:'single',q:'Jak podchodzisz do nowych smaków?',opts:['🤩|Uwielbiam próbować','🙂|Spróbuję, jeśli wygląda znajomo','🏠|Wolę to, co znam','😬|Nowe potrawy mnie stresują']},
+// TY I JEDZENIE
+{s:'Ty i jedzenie',id:'kiedy',type:'multi',q:'Po jedzenie sięgasz najczęściej, gdy…',hint:'Zaznacz wszystko, co się zdarza.',opts:()=>[g('🍽️|Jestem głodny','🍽️|Jestem głodna','🍽️|Czuję głód'),'😰|Się stresuję','🥱|Się nudzę','😔|Jest mi smutno','🎉|Chcę się nagrodzić',g('😴|Jestem zmęczony','😴|Jestem zmęczona','😴|Czuję zmęczenie'),'👥|Inni jedzą','🕐|Jest pora posiłku']},
+{s:'Ty i jedzenie',id:'sygnaly',type:'single',q:()=>g('Czy łatwo rozpoznajesz, że jesteś głodny albo najedzony?','Czy łatwo rozpoznajesz, że jesteś głodna albo najedzona?','Czy łatwo rozpoznajesz u siebie głód i sytość?'),opts:['🎯|Tak, łatwo','🌤️|Różnie','🌫️|Raczej trudno','⏰|Głód czuję dopiero, gdy jest bardzo silny']},
+{s:'Ty i jedzenie',id:'tempo',tip:"<div class=\"tip\"><span class=\"te\">🐢</span><div><p><b class=\"tl\">Ciekawostka</b> Wolniej znaczy mniej. Sygnały sytości docierają do mózgu z opóźnieniem, często mówi się o <b>ok. 20 minutach</b>. Dlatego warto zwolnić i chwilę odczekać przed dokładką. Przy szybkim jedzeniu łatwo zjeść więcej, niż potrzebujemy, i poczuć ciężar dopiero chwilę później.</p><p><b>PS.</b> Stąd to znajome uczucie ciężkiego brzucha po świątecznym obiedzie. 🎄</p><p class=\"src\">Źródło: <a href=\"https://ora.ox.ac.uk/objects/uuid:1609de9b-565c-4e01-b0ed-a1054c3b6e3e\" target=\"_blank\" rel=\"noopener\">Robinson i in., American Journal of Clinical Nutrition 2014</a></p></div></div>",type:'single',q:'Jak szybko jesz?',hint:'Chodzi o typowy główny posiłek, np. obiad.',opts:['🐇|Szybko (do 10 min)','🚶|Średnio (10–20 min)','🐢|Powoli (ponad 20 min)']},
+{s:'Ty i jedzenie',id:'ekran',type:'single',q:'Jak często jesz przy telefonie, TV lub komputerze?',opts:['📱|Prawie zawsze','📺|Często','🖥️|Czasem','🍽️|Rzadko']},
+{s:'Ty i jedzenie',id:'kontrola',type:'single',q:'Czy zdarza Ci się zjeść dużo naraz i czuć, że trudno przestać?',opts:['🌿|Nigdy','🌙|Rzadziej niż raz w miesiącu','📆|Kilka razy w miesiącu','🔁|Co tydzień lub częściej']},
+{s:'Ty i jedzenie',id:'restrykcja',type:'single',q:'Gdy długo odmawiasz sobie ulubionego jedzenia, czy zdarza Ci się potem zjeść go dużo naraz?',opts:['🌿|Nie','🌤️|Czasem','🌧️|Często','⛈️|Prawie zawsze','😌|Nie odmawiam sobie jedzenia']},
+{s:'Ty i jedzenie',id:'pokusy',type:'multi',q:'Od czego najtrudniej Ci się powstrzymać?',hint:'Zaznacz wszystko, co pasuje.',opts:['🍫|Słodycze','🍔|Tłuste jedzenie, fast food','🥨|Słone przekąski (chipsy, paluszki)','🥖|Pieczywo, bułki','🧀|Ser','🥤|Słodkie napoje','🍷|Alkohol','✍️|Inne!o','👌|Nic szczególnego!x']},
+{s:'Ty i jedzenie',id:'trudno',type:'multi',q:'Kiedy najtrudniej Ci się powstrzymać przed podjadaniem albo zjedzeniem czegoś bardzo słodkiego, tłustego lub słonego?',opts:['🌅|Rano','💼|W pracy / w szkole','🌇|Po południu','🌆|Wieczorem','🌃|W nocy','🎈|W weekendy','🎂|Na imprezach i wyjściach','👌|Nie mam takich momentów!x']},
+{s:'Ty i jedzenie',id:'wina',type:'single',q:'Jak często masz wyrzuty sumienia po jedzeniu?',opts:['🌿|Nigdy','🌤️|Rzadko','⛅|Czasem','🌧️|Często','⛈️|Prawie zawsze']},
+{s:'Ty i jedzenie',id:'diety',type:'single',q:()=>g('Ile razy byłeś już na diecie?','Ile razy byłaś już na diecie?','Ile diet masz już za sobą?'),opts:()=>[g('0️⃣|Nigdy','0️⃣|Nigdy','0️⃣|Żadnej'),'🔂|1–2','🔁|3–5','♾️|Więcej niż 5']},
+{s:'Ty i jedzenie',id:'przeszkody',type:'multi',q:'Co było najtrudniejsze w poprzednich próbach?',opts:['⏰|Brak czasu','😩|Głód','🍫|Ochota na słodycze','🔂|Monotonia','🎉|Imprezy, wyjścia','😰|Stres','📉|Brak efektów','🎢|Efekt jo-jo','👨‍👩‍👧|Gotowanie dla rodziny','➖|Nie dotyczy!x']},
+{s:'Ty i jedzenie',id:'relacja',type:'scale',q:'Jak oceniasz swoją relację z jedzeniem?',lo:'Trudna',hi:'Spokojna',faces:['😣','😕','😐','🙂','😊']},
+{s:'Ty i jedzenie',id:'gotowosc',type:'scale',q:()=>g('Na ile czujesz się gotowy na zmiany teraz?','Na ile czujesz się gotowa na zmiany teraz?','Na ile masz teraz w sobie gotowość na zmiany?'),lo:'Wcale',hi:'W pełni',faces:['🐌','🌱','🌿','🌳','🚀']},
+{s:'Ty i jedzenie',id:'wsparcie',type:'single',q:'Czy bliscy wspierają Twoje zmiany?',opts:()=>['🤗|Tak','🤝|Częściowo','😶|Raczej nie',g('💬|Nie rozmawiałem z nimi o tym','💬|Nie rozmawiałam z nimi o tym','💬|Nie było jeszcze o tym rozmowy')]},
+{s:'Na koniec',id:'uwagi',type:'text',q:'Czy jest coś jeszcze, co powinnam wiedzieć?',hint:'Wszystko, co uważasz za ważne. Możesz pominąć.',ph:'np. pracuję na zmiany, w sobotę mam wesele…',none:'Nic więcej'}
+];
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let advT;
+
+function go(d){clearTimeout(advT);S.i=Math.max(-1,Math.min(Q.length,S.i+d));save();render();window.scrollTo({top:0,behavior:'smooth'})}
+function nav(extra=''){const t=(Q[S.i]||{}).tip||'';return t+`<div class="nav"><button class="btn ghost" id="back">← Wstecz</button><div class="row">${extra}<button class="btn ghost" id="skip">Pomiń</button><button class="btn" id="next">Dalej →</button></div></div>`}
+
+function render(){
+  const st=$('#stage'),top=$('#top');
+  if(S.i<0){top.hidden=true;st.innerHTML=`<section class="card">
+    <span class="big-emoji">🥗</span>
+    <h1>Poznajmy się przy talerzu</h1>
+    <p style="margin:0">Ten kwestionariusz pomoże mi przygotować plan, który będzie pasował do Twojego dnia, smaków i samopoczucia. Nie ma tu dobrych ani złych odpowiedzi.</p>
+    <div class="note">⏱️ Zajmie <b>ok. 8–10 minut</b>. Większość pytań to jedno kliknięcie. Odpowiedzi zapamiętują się na tym urządzeniu, więc możesz przerwać i wrócić.</div>
+    <div class="note">🧪 Jeśli masz <b>aktualne wyniki badań</b>, przygotuj je. Na końcu poproszę o przesłanie ich razem z odpowiedziami.</div>
+    <div class="row"><button class="btn" id="start">${Object.keys(S.a).length?'Kontynuuj':'Zaczynamy'} →</button>${Object.keys(S.a).length?'<button class="btn ghost" id="reset">Zacznij od nowa</button>':''}</div></section>`;
+    $('#start').onclick=()=>go(1);
+    const r=$('#reset');if(r)r.onclick=()=>{S.a={};S.i=-1;save();render()};
+    return}
+  if(S.i>=Q.length){top.hidden=true;return finish()}
+  const q=Q[S.i];top.hidden=false;
+  $('#sec').textContent=q.s;$('#count').textContent=(S.i+1)+' / '+Q.length;$('#bar').style.width=((S.i)/Q.length*100)+'%';
+  let h=`<section class="card" aria-live="polite"><h2>${esc(R(q.q))}</h2>${q.hint?`<p class="hint">${esc(R(q.hint))}</p>`:''}`;
+  const v=S.a[q.id];
+  if(q.type==='single'||q.type==='multi'){
+    const os=R(q.opts).map(P);
+    h+=`<div class="opts${os.some(o=>o.t.length>30)?' wide':''}">`+os.map((o,k)=>{const on=q.type==='single'?v===o.t:(v||[]).includes(o.t);return `<button class="opt${on?' on':''}" data-k="${k}" aria-pressed="${on}"><span class="e">${o.e}</span><span>${esc(o.t)}</span></button>`}).join('')+'</div>';
+    const hasOther=os.find(o=>o.ot);const otherOn=hasOther&&(q.type==='single'?v===hasOther.t:(v||[]).includes(hasOther.t));
+    if(hasOther)h+=`<input type="text" class="other" id="other" placeholder="Wpisz…" value="${esc(S.a[q.id+'_inne']||'')}" ${otherOn?'':'hidden'}>`;
+    h+=nav();st.innerHTML=h+'</section>';
+    st.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const o=os[+b.dataset.k];
+      if(q.type==='single'){S.a[q.id]=o.t;save();render();if(!o.ot)advT=setTimeout(()=>go(1),420);else $('#other').focus();}
+      else{let a=(S.a[q.id]||[]).slice();if(a.includes(o.t))a=a.filter(x=>x!==o.t);else{if(o.ex)a=[o.t];else a=a.filter(x=>!os.find(p=>p.t===x&&p.ex)).concat(o.t)}S.a[q.id]=a;save();render();if(o.ot&&a.includes(o.t))$('#other').focus()}
+    });
+    const ot=$('#other');if(ot)ot.oninput=()=>{S.a[q.id+'_inne']=ot.value;save()};
+  }
+  else if(q.type==='text'){
+    h+=`<textarea id="t" placeholder="${esc(q.ph||'')}">${esc(v&&v!==q.none?v:'')}</textarea>`;
+    h+=nav(q.none?`<button class="btn soft" id="none">${esc(q.none)}</button>`:'');st.innerHTML=h+'</section>';
+    const t=$('#t');t.oninput=()=>{S.a[q.id]=t.value;save()};
+    if(q.none)$('#none').onclick=()=>{S.a[q.id]=q.none;save();go(1)};
+  }
+  else if(q.type==='fields'){
+    const o=v||{};
+    h+='<div class="fields">'+q.fields.map(([k,l,t,u])=>`<label class="f" for="f_${k}">${l}<span class="${u?'unit':''}"><input id="f_${k}" type="${t}" ${t==='number'?'inputmode="decimal" min="0"':''} value="${esc(o[k]||'')}" data-k="${k}">${u?`<b>${u}</b>`:''}</span></label>`).join('')+'</div>';
+    h+=nav();st.innerHTML=h+'</section>';
+    st.querySelectorAll('.fields input').forEach(i=>i.oninput=()=>{S.a[q.id]={...(S.a[q.id]||{}),[i.dataset.k]:i.value};save()});
+  }
+  else if(q.type==='waist'){
+    const norm=M()?'poniżej 94 cm':N()?'poniżej 80 cm (kobiety) lub poniżej 94 cm (mężczyźni)':'poniżej 80 cm';
+    h+=`<div class="waist">${waistSVG()}<div><ol>
+      <li>${g('Stań prosto, rozluźniony','Stań prosto, rozluźniona','Stań prosto i rozluźnij się')}, z odsłoniętym brzuchem.</li>
+      <li>Znajdź <b>dolne żebro</b> i <b>górny brzeg kości biodrowej</b>.</li>
+      <li>Owiń centymetr <b>w połowie odległości między nimi</b>, zwykle na wysokości pępka lub tuż nad nim.</li>
+      <li>Taśma poziomo, przylega, ale nie uciska. Zmierz po spokojnym wydechu, bez wciągania brzucha.</li></ol></div></div>
+      <label class="f" for="w">Mój obwód talii<span class="unit"><input id="w" type="number" inputmode="decimal" min="40" max="200" value="${esc(v||'')}"><b>cm</b></span></label>`;
+    h+=nav();st.innerHTML=h+'</section>';
+    const w=$('#w');w.oninput=()=>{S.a[q.id]=w.value;save()};
+    
+  }
+  else if(q.type==='matrix'){
+    const o=v||{};const cs=q.cols.map(P);const sz={s:12,m:18,l:24};
+    h+='<div class="matrix">'+q.rows.map((r,ri)=>`<div class="mrow"><h3>${r}</h3><div class="chips">`+cs.map((c,ci)=>{const val=o[r];const on=q.mode==='single'?val===c.t:(val||[]).includes(c.t);const icon=sz[c.e]?`<span class="plate" style="width:${sz[c.e]}px;height:${sz[c.e]}px"></span>`:c.e;return `<button class="chip${on?' on':''}" data-r="${ri}" data-c="${ci}" aria-pressed="${on}">${icon} ${esc(c.t)}</button>`}).join('')+'</div></div>').join('')+'</div>';
+    h+=nav();st.innerHTML=h+'</section>';
+    st.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const r=q.rows[+b.dataset.r],c=cs[+b.dataset.c].t;const o2={...(S.a[q.id]||{})};
+      if(q.mode==='single')o2[r]=o2[r]===c?undefined:c;else{let a=(o2[r]||[]).slice();o2[r]=a.includes(c)?a.filter(x=>x!==c):a.concat(c)}S.a[q.id]=o2;save();render()});
+  }
+  else if(q.type==='scale'){
+    const val=v||5;
+    h+=`<div class="scale"><div class="face" id="face">${face(q,val)}</div><div class="val" id="val">${val} / 10</div><input type="range" id="r" min="1" max="10" value="${val}" aria-label="${esc(R(q.q))}"><div class="ends"><span>1 · ${q.lo}</span><span>${q.hi} · 10</span></div></div>`;
+    h+=nav();st.innerHTML=h+'</section>';
+    const r=$('#r');if(v==null){S.a[q.id]=5;save()}
+    r.oninput=()=>{S.a[q.id]=+r.value;$('#val').textContent=r.value+' / 10';const f=$('#face');f.textContent=face(q,+r.value);f.style.transform='scale(1.15)';setTimeout(()=>f.style.transform='',150);save()};
+  }
+  restartUI();$('#back').onclick=()=>go(-1);$('#next').onclick=()=>go(1);
+  $('#skip').onclick=()=>{S.a[q.id]=S.a[q.id]??'—';go(1)};
+  const first=st.querySelector('textarea,input:not([hidden])');if(first&&q.type!=='scale')first.focus({preventScroll:true});
+}
+function restartUI(){document.querySelectorAll('.rsbox').forEach(box=>{const c=box.querySelector('.confirm');
+  box.querySelector('[data-open]').onclick=e=>{e.stopPropagation();c.hidden=!c.hidden};
+  c.querySelector('[data-yes]').onclick=()=>{S.a={};S.i=0;save();c.hidden=true;render();window.scrollTo({top:0})};
+  c.querySelector('[data-no]').onclick=e=>{e.stopPropagation();c.hidden=true};
+  c.onclick=e=>e.stopPropagation()})}
+const closeConfirms=()=>document.querySelectorAll('.rsbox .confirm').forEach(c=>c.hidden=true);
+document.addEventListener('click',closeConfirms);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeConfirms()});
+const face=(q,v)=>q.faces[Math.min(4,Math.floor((v-1)/2))];
+
+function waistSVG(){const C=100,[S,W,H]=M()?[47,33,36]:N()?[43,29,40]:[39,25,43];const L=x=>C-x,Rt=x=>C+x;
+  const body=`M ${L(9)} 2 L ${L(9)} 16 Q ${L(10)} 24 ${L(S)} 30 Q ${L(S+2)} 40 ${L(S-6)} 56 Q ${L(W+6)} 80 ${L(W)} 110 Q ${L(W+2)} 130 ${L(H)} 152 Q ${L(H+1)} 185 ${L(H-6)} 218 L ${L(3)} 218 Q ${C} 205 ${C} 192 Q ${C} 205 ${Rt(3)} 218 L ${Rt(H-6)} 218 Q ${Rt(H+1)} 185 ${Rt(H)} 152 Q ${Rt(W+2)} 130 ${Rt(W)} 110 Q ${Rt(W+6)} 80 ${Rt(S-6)} 56 Q ${Rt(S+2)} 40 ${Rt(S)} 30 Q ${Rt(10)} 24 ${Rt(9)} 16 L ${Rt(9)} 2 Z`;
+  const arm=f=>{const X=x=>C+f*x;return `M ${X(S)} 30 Q ${X(S+10)} 90 ${X(S+9)} 150 Q ${X(S+3)} 160 ${X(S-2)} 150 Q ${X(S-2)} 100 ${X(S-6)} 56 Z`};
+  const bust=(!M())?`<path d="M ${L(W+8)} 64 Q ${L(14)} ${N()?72:78} ${C-2} 66 M ${Rt(W+8)} 64 Q ${Rt(14)} ${N()?72:78} ${C+2} 66" fill="none" stroke="var(--muted)" stroke-width="1.2" opacity=".7"/>`:`<path d="M ${L(W+6)} 66 Q ${L(14)} 72 ${C-3} 68 M ${Rt(W+6)} 66 Q ${Rt(14)} 72 ${C+3} 68" fill="none" stroke="var(--muted)" stroke-width="1.2" opacity=".5"/>`;
+  return `<svg viewBox="0 0 200 222" role="img" aria-label="Miejsce pomiaru obwodu talii" style="width:100%;max-width:190px">
+  <g fill="var(--leaf-soft)" stroke="var(--muted)" stroke-width="1.5"><path d="${arm(-1)}"/><path d="${arm(1)}"/><path d="${body}"/></g>
+  ${bust}
+  <path d="M ${L(W+4)} 80 Q ${C} 96 ${Rt(W+4)} 80" fill="none" stroke="var(--muted)" stroke-width="1.3"/>
+  <line x1="18" y1="82" x2="182" y2="82" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 3"/>
+  <text x="198" y="78" font-size="10" fill="var(--muted)" text-anchor="end">żebro</text>
+  <path d="M ${L(H-4)} 148 Q ${L(H-10)} 138 ${L(H-18)} 144 M ${Rt(H-4)} 148 Q ${Rt(H-10)} 138 ${Rt(H-18)} 144" fill="none" stroke="var(--muted)" stroke-width="1.3"/>
+  <line x1="18" y1="140" x2="182" y2="140" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 3"/>
+  <text x="198" y="155" font-size="10" fill="var(--muted)" text-anchor="end">biodro</text>
+  <circle cx="${C}" cy="116" r="2" fill="var(--muted)"/>
+  <line class="tape" x1="${L(W+3)}" y1="111" x2="${Rt(W+3)}" y2="111" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>
+  <text x="${C}" y="130" font-size="10" fill="var(--accent)" text-anchor="middle" font-weight="700">tu mierz</text>
+  <path d="M 10 86 L 10 136 M 6 90 L 10 84 L 14 90 M 6 132 L 10 138 L 14 132" fill="none" stroke="var(--leaf)" stroke-width="1.5"/>
+  <text x="6" y="111" font-size="9" fill="var(--leaf)" transform="rotate(-90 6 111)" text-anchor="middle">połowa</text></svg>`}
+
+function fmt(q){const v=S.a[q.id];if(v==null||v===''||(Array.isArray(v)&&!v.length))return '—';
+  if(q.type==='fields')return q.fields.map(([k,l,t,u])=>`${l}: ${v[k]||'—'}${v[k]&&u?' '+u:''}`).join(' | ');
+  if(q.type==='matrix')return '\n'+q.rows.map(r=>{const x=v[r];return `   • ${r}: ${x==null||(Array.isArray(x)&&!x.length)?'—':[].concat(x).join(', ')}`}).join('\n');
+  if(q.type==='scale')return v+'/10 ('+q.lo+' → '+q.hi+')';
+  if(q.type==='waist')return v==='nie zmierzono'||v==='—'?v:v+' cm';
+  let s=[].concat(v).join(', ');const ot=S.a[q.id+'_inne'];if(ot&&s.includes('Inne'))s+=' ('+ot+')';return s}
+function summary(){let out='KWESTIONARIUSZ – '+((S.a.dane&&S.a.dane.imie)||'')+'\n',sec='';
+  Q.forEach(q=>{if(q.s!==sec){sec=q.s;out+='\n== '+sec.toUpperCase()+' ==\n'}out+='• '+R(q.q)+' '+fmt(q)+'\n'});return out}
+
+function finish(){
+  const txt=summary();
+  $('#stage').innerHTML=`<section class="card"><span class="big-emoji">🎉</span><h1>Dziękuję${S.a.dane&&S.a.dane.imie?', '+esc(S.a.dane.imie):''}!</h1>
+  <p style="margin:0">Ostatni krok: skopiuj odpowiedzi i wyślij mi je ${g('tak, jak się umówiliśmy','tak, jak się umówiłyśmy','w ustalony sposób')} (mail, wiadomość w aplikacji lub SMS).</p>
+  <div class="note">🧪 <b>Dołącz wyniki badań</b>, jeśli je masz: zdjęcie lub PDF w tej samej wiadomości.</div>
+  <div class="row"><button class="btn" id="copy">📋 Skopiuj odpowiedzi</button><span id="msg" class="ok" role="status"></span></div>
+  <div class="sum" id="sum">${esc(txt)}</div>
+  <div class="nav"><button class="btn ghost" id="back">← Popraw odpowiedzi</button><span id="rs" class="rsbox"><button class="btn soft" data-open>↺ Wypełnij od nowa</button><span class="confirm" hidden>Usunąć odpowiedzi i zacząć od nowa? <button class="btn small" data-yes>Tak</button> <button class="btn ghost small" data-no>Nie</button></span></span></div></section>`;
+  restartUI();
+  $('#back').onclick=()=>go(-1);
+  $('#copy').onclick=()=>{const done=()=>{$('#msg').textContent='Skopiowano. Wklej w wiadomość ✓'};
+    try{navigator.clipboard.writeText(txt).then(done,sel)}catch(e){sel()}
+    function sel(){const r=document.createRange();r.selectNodeContents($('#sum'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('#msg').textContent='Tekst zaznaczony. Skopiuj go (Ctrl+C lub przytrzymaj palcem).'}};
+  confetti();
+}
+function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const c=$('#conf');c.hidden=false;const x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const cs=getComputedStyle(document.documentElement);const cols=[cs.getPropertyValue('--accent'),cs.getPropertyValue('--leaf'),'#E9B44C','#7FB3D5'];
+  const p=Array.from({length:110},()=>({x:c.width/2,y:c.height/3,vx:(Math.random()-.5)*12,vy:Math.random()*-11-3,r:Math.random()*6+4,c:cols[Math.random()*4|0],a:Math.random()*6}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);p.forEach(o=>{o.x+=o.vx;o.y+=o.vy;o.vy+=.35;o.a+=.2;x.save();x.translate(o.x,o.y);x.rotate(o.a);x.fillStyle=o.c;x.fillRect(-o.r/2,-o.r/4,o.r,o.r/2);x.restore()});if(++t<140)requestAnimationFrame(f);else c.hidden=true})()}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.tagName==='INPUT'&&$('#next')){e.preventDefault();go(1)}});
+render();
+</script>

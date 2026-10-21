@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Moje wizyty · Zdrówko za zdrowie</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/site.css?v=__BUILD__">
+  <link rel="stylesheet" href="/styles/app.css?v=__BUILD__">
+</head>
+<body class="app">
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="/"><img src="/assets/logo.png" alt=""><span class="brand-text">Zdrówko za zdrowie</span></a>
+    <nav class="nav-links app-nav" aria-label="Konto"><a class="home-link" href="/">Strona główna</a><span id="account-nav"></span></nav>
+  </div>
+</header>
+<main class="app-main">
+  <div class="wrap">
+    <section class="panel">
+      <div class="admin-bar">
+        <div>
+          <h1>Moje wizyty</h1>
+          <p class="muted" id="hello"></p>
+        </div>
+        <a class="btn btn-primary" href="/#umow">Umów wizytę</a>
+      </div>
+      <div class="list" id="appointments"><p class="loading">Wczytuję…</p></div>
+    </section>
+    <section class="panel">
+      <h2>Dane kontaktowe</h2>
+      <form class="plain stack" id="profile-form" novalidate>
+        <div class="row">
+          <label>Imię i nazwisko<input id="p-name" autocomplete="name" maxlength="200"></label>
+          <label>Telefon<input id="p-phone" type="tel" autocomplete="tel" maxlength="40"></label>
+        </div>
+        <p class="muted small" id="p-email"></p>
+        <div><button class="btn btn-outline" type="submit">Zapisz dane</button></div>
+      </form>
+    </section>
+  </div>
+</main>
+<script type="module" src="/js/account.js?v=__BUILD__"></script>
+</body>
+</html>
