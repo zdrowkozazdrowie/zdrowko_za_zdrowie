@@ -100,6 +100,7 @@ export const QUESTIONS: Question[] = [
   // TWÓJ DZIEŃ
   {s:'Twój dzień',id:'posilki',type:'single',q:'Ile posiłków zwykle jesz?',opts:['1️⃣|1–2','3️⃣|3','4️⃣|4','5️⃣|5 lub więcej','🔀|Bardzo różnie']},
   {s:'Twój dzień',id:'posilki_chce',type:'single',q:'Ile posiłków chcesz jeść w ciągu dnia?',hint:'Tak, żeby pasowało do Twojego dnia.',opts:['2️⃣|2','3️⃣|3','4️⃣|4','5️⃣|5','🤷|Nie wiem, doradź mi','✍️|Inne!o']},
+  {s:'Twój dzień',id:'sniadanie',type:'single',q:'Jak wolisz zjeść śniadanie?',opts:['🌅|Zaraz po przebudzeniu','⏰|1–2 godziny po wstaniu','💼|Później, np. w pracy','☕|Rano tylko kawa, jem dopiero później','🚫|Nie jem śniadań','✍️|Inne!o']},
   {s:'Twój dzień',id:'praca',type:'single',q:'Jak wygląda Twoja praca lub nauka?',opts:(c)=>['🏢|Stacjonarnie','🏠|Zdalnie','🔁|Hybrydowo','🌙|Zmianowo / na noce','🎓|Uczę się',c.g('🌴|Nie pracuję','🌴|Nie pracuję')]},
   {s:'Twój dzień',id:'godziny',type:'fields',q:'Twój typowy dzień',hint:'Wystarczy w przybliżeniu.',fields:[['wstaje','Wstaję ok.','time'],['pierwszy','Pierwszy posiłek ok.','time'],['spac','Kładę się ok.','time']]},
   {s:'Twój dzień',id:'podgrzac',type:'multi',q:'Czy w pracy lub szkole możesz podgrzać jedzenie?',hint:'Zaznacz, czym dysponujesz.',opts:['📦|Mikrofala','🍞|Toster','♨️|Piekarnik','🫖|Czajnik','✍️|Inne!o','❌|Nie mam takiej możliwości!x','🏡|Jem w domu!x']},
