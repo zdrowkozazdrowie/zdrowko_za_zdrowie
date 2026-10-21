@@ -254,8 +254,8 @@ interface Contact {
 }
 
 function linkMessage(c: Contact, url: string): string {
-  const hello = c.name ? `Dzień dobry ${c.name.split(' ')[0]},` : 'Dzień dobry,';
-  return `${hello}\nprzed naszym spotkaniem proszę o wypełnienie krótkiego kwestionariusza (ok. 10 minut): ${url}\nOdpowiedzi zapisują się automatycznie, a na końcu można dołączyć wyniki badań.\nPozdrawiam, Wiktoria Przybylak`;
+  const hello = c.name ? `Cześć ${c.name.split(' ')[0]},` : 'Cześć,';
+  return `${hello}\nprzed naszym spotkaniem proszę o wypełnienie krótkiego kwestionariusza (ok. 10 minut): ${url}\nOdpowiedzi zapisują się automatycznie, a na końcu można dołączyć wyniki badań.`;
 }
 
 function linkBoxHtml(info: LinkInfo, c: Contact): string {
