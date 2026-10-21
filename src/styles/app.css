@@ -601,3 +601,35 @@ table.data td.json {
     display: none;
   }
 }
+
+/* Questionnaire links */
+.link-box {
+  display: grid;
+  gap: 10px;
+  background: #f6f9f7;
+  border-radius: 14px;
+  padding: 14px;
+}
+.link-row {
+  display: flex;
+  gap: 8px;
+}
+.link-row input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+}
+.q-new {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+@media (max-width: 760px) {
+  .q-new,
+  .link-row {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+}

@@ -17,7 +17,10 @@ i panel administratora.
 2. Admin dostaje e-mail z przyciskami **Potwierdź / Odrzuć** (lub robi to w panelu).
 3. Klient dostaje e-mail z decyzją. Po potwierdzeniu: link do **kwestionariusza**. Odpowiedzi zapisują się w Postgresie
    (`public.questionnaires`), a wyniki badań w prywatnym buckecie Storage `wyniki-badan`.
-4. Panel `/admin.html`: wizyty, kalendarz, terminy, klienci, kwestionariusze, log e-maili i podgląd bazy danych.
+4. **Linki do kwestionariusza** (działają bez logowania i bez maili): każda wizyta ma własny link w panelu
+   (szczegóły wizyty → „Link do kwestionariusza”: kopiuj / SMS / WhatsApp / e-mail / nowy link). Kwestionariusz
+   bez wizyty: Panel → Kwestionariusze → „Utwórz link”; później można go przypisać do wizyty.
+5. Panel `/admin.html`: wizyty, kalendarz, terminy, klienci, kwestionariusze, log e-maili i podgląd bazy danych.
 
 ## Praca lokalnie
 

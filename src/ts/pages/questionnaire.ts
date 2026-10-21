@@ -1,5 +1,4 @@
-import type { User } from '@supabase/supabase-js';
-import { requireUser } from '../lib/auth';
+import { getUser, loginUrl } from '../lib/auth';
 import { LAB_BUCKET, supabase } from '../lib/supabase';
 import type { AppointmentStatus, QuestionnaireRow } from '../lib/types';
 import { $, errorMessage, esc, fmtDateTime, fmtShort } from '../lib/ui';
@@ -7,18 +6,33 @@ import { confetti, createEngine, type Engine, type State } from '../questionnair
 import { summaryText } from '../questionnaire/summary';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const TOKEN = /^[0-9a-f]{48}$/;
 const MAX_FILE = 10 * 1024 * 1024;
 
 const stage = $('#stage');
 const top = $('#top');
 const savedEl = $('#saved');
-const appointmentId = new URLSearchParams(location.search).get('wizyta') ?? '';
+const params = new URLSearchParams(location.search);
+const token = (params.get('t') ?? '').toLowerCase();
+const appointmentId = params.get('wizyta') ?? '';
+const linkMode = TOKEN.test(token);
+
+/**
+ * Two ways in: a secret link from the dietitian (?t=…, no account needed) or a signed-in client's
+ * appointment (?wizyta=…). Both store answers in public.questionnaires.
+ */
+interface Backend {
+  /** Storage folder for lab results. */
+  folder: string;
+  save: (state: State, submit: boolean) => Promise<{ submittedAt: string | null; error: unknown }>;
+}
+let backend: Backend;
 
 interface Cache extends State {
   at: number;
 }
 
-const cacheKey = `kw-${appointmentId}`;
+const cacheKey = `kw-${linkMode ? token.slice(0, 16) : appointmentId}`;
 const readCache = (): Cache | null => {
   try {
     return JSON.parse(localStorage.getItem(cacheKey) ?? 'null') as Cache | null;
@@ -44,7 +58,7 @@ const clearCache = (): void => {
 function fatal(html: string): void {
   top.hidden = true;
   stage.innerHTML = `<section class="card"><span class="big-emoji">🗓️</span>${html}
-    <div class="row"><a class="btn" href="/konto.html">Moje wizyty</a></div></section>`;
+    ${linkMode ? '' : '<div class="row"><a class="btn" href="/konto.html">Moje wizyty</a></div>'}</section>`;
 }
 
 let submittedAt: string | null = null;
@@ -61,13 +75,7 @@ function scheduleSave(state: State): void {
 }
 
 async function saveDraft(state: State): Promise<void> {
-  const { error } = await supabase.rpc('save_questionnaire', {
-    p_appointment_id: appointmentId,
-    p_answers: state.a,
-    p_step: state.i,
-    p_submit: false,
-    p_health_consent: false,
-  });
+  const { error } = await backend.save(state, false);
   savedEl.textContent = error
     ? 'Nie udało się zapisać na serwerze. Odpowiedzi są zapamiętane na tym urządzeniu.'
     : 'Zapisano ✓';
@@ -95,8 +103,8 @@ function safeFileName(name: string): string {
 
 const displayName = (stored: string): string => stored.replace(/^\d+-/, '');
 
-function renderFinish(user: User) {
-  const folder = `${user.id}/${appointmentId}`;
+function renderFinish() {
+  const folder = backend.folder;
 
   return (root: HTMLElement, engine: Engine): void => {
     const a = engine.state.a;
@@ -110,7 +118,7 @@ function renderFinish(user: User) {
         <h2>🧪 Wyniki badań</h2>
         <p class="hint" style="margin:0">Zdjęcie lub PDF, do 10 MB na plik. Widzę je tylko ja.</p>
         <ul class="files" id="files"><li>Wczytuję…</li></ul>
-        <input type="file" id="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif" aria-label="Dodaj wyniki badań">
+        <label class="btn soft file-btn">📎 Dodaj zdjęcie lub PDF<input type="file" id="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif"></label>
         <p class="err" id="file-err" hidden></p>
       </div>
       <label class="consent"><input type="checkbox" id="consent" ${submittedAt ? 'checked' : ''}>
@@ -189,27 +197,21 @@ function renderFinish(user: User) {
       submitBtn.disabled = true;
       window.clearTimeout(saveTimer);
       await saving;
-      const { data, error } = await supabase.rpc('save_questionnaire', {
-        p_appointment_id: appointmentId,
-        p_answers: engine.state.a,
-        p_step: engine.state.i,
-        p_submit: true,
-        p_health_consent: true,
-      });
+      const { submittedAt: at, error } = await backend.save(engine.state, true);
       submitBtn.disabled = false;
       if (error) {
         err.textContent = errorMessage(error);
         err.hidden = false;
         return;
       }
-      submittedAt = (data as QuestionnaireRow).submitted_at;
+      submittedAt = at;
       clearCache();
       savedEl.textContent = '';
       root.innerHTML = `<section class="card center">
         <span class="big-emoji">💚</span>
         <h1>Gotowe!</h1>
-        <p style="margin:0">Kwestionariusz dotarł do mnie. Przejrzę go przed naszą wizytą. Do zobaczenia!</p>
-        <div class="row" style="justify-content:center"><a class="btn" href="/konto.html">Moje wizyty</a><button type="button" class="btn ghost" id="edit">Popraw odpowiedzi</button></div>
+        <p style="margin:0">Kwestionariusz dotarł do mnie. Przejrzę go przed naszym spotkaniem. Do zobaczenia!</p>
+        <div class="row" style="justify-content:center">${linkMode ? '' : '<a class="btn" href="/konto.html">Moje wizyty</a>'}<button type="button" class="btn ghost" id="edit">Popraw odpowiedzi</button></div>
       </section>`;
       $('#edit', root).addEventListener('click', () => engine.render());
       confetti($<HTMLCanvasElement>('#conf'));
@@ -217,13 +219,78 @@ function renderFinish(user: User) {
   };
 }
 
-async function init(): Promise<void> {
-  const user = await requireUser();
+const SAVED_NOTE = 'Odpowiedzi zapisują się automatycznie, więc możesz przerwać i wrócić, także na innym urządzeniu.';
+
+interface Loaded {
+  saved: {
+    answers: Record<string, unknown>;
+    current_step: number;
+    submitted_at: string | null;
+    updated_at: string;
+  } | null;
+  title: string;
+}
+
+interface LinkRow {
+  questionnaire_id: string | null;
+  label: string | null;
+  appointment_id: string | null;
+  status: AppointmentStatus | null;
+  service_name: string | null;
+  starts_at: string | null;
+  answers: Record<string, unknown> | null;
+  current_step: number | null;
+  submitted_at: string | null;
+  updated_at: string | null;
+}
+
+async function initLink(): Promise<Loaded | null> {
+  const { data, error } = await supabase.rpc('get_questionnaire_by_link', { p_token: token });
+  const row = (data as LinkRow[] | null)?.[0];
+  if (error || !row) {
+    fatal(
+      `<h1>Link nie działa</h1><p style="margin:0">${esc(error ? errorMessage(error) : 'Link jest nieprawidłowy.')}</p>
+       <p style="margin:0">Napisz do mnie, a wyślę nowy: <a href="tel:+48786893531">+48 786 893 531</a>.</p>`,
+    );
+    return null;
+  }
+  backend = {
+    folder: `link/${token}`,
+    save: async (state, submit) => {
+      const { data: res, error: err } = await supabase.rpc('save_questionnaire_by_link', {
+        p_token: token,
+        p_answers: state.a,
+        p_step: state.i,
+        p_submit: submit,
+        p_health_consent: submit,
+      });
+      return { submittedAt: (res as { submitted_at: string | null }[] | null)?.[0]?.submitted_at ?? null, error: err };
+    },
+  };
+  return {
+    saved: row.updated_at
+      ? {
+          answers: row.answers ?? {},
+          current_step: row.current_step ?? -1,
+          submitted_at: row.submitted_at,
+          updated_at: row.updated_at,
+        }
+      : null,
+    title: row.starts_at ? `Kwestionariusz – ${fmtDateTime(row.starts_at)}` : 'Kwestionariusz',
+  };
+}
+
+async function initAccount(): Promise<Loaded | null> {
+  const user = await getUser();
+  if (!user) {
+    location.replace(loginUrl());
+    return null;
+  }
   if (!UUID.test(appointmentId)) {
     fatal(
-      '<h1>Nie znaleziono wizyty</h1><p style="margin:0">Otwórz link z e-maila jeszcze raz albo przejdź do swoich wizyt.</p>',
+      '<h1>Nie znaleziono wizyty</h1><p style="margin:0">Otwórz link jeszcze raz albo przejdź do swoich wizyt.</p>',
     );
-    return;
+    return null;
   }
   const [appt, row] = await Promise.all([
     supabase.from('appointments').select('id,status,starts_at').eq('id', appointmentId).maybeSingle(),
@@ -231,23 +298,42 @@ async function init(): Promise<void> {
   ]);
   if (appt.error || row.error) {
     fatal(`<h1>Coś poszło nie tak</h1><p style="margin:0">${esc(errorMessage(appt.error ?? row.error))}</p>`);
-    return;
+    return null;
   }
   const a = appt.data as { status: AppointmentStatus; starts_at: string | null } | null;
   if (!a) {
     fatal('<h1>Nie znaleziono wizyty</h1><p style="margin:0">Ta wizyta nie istnieje albo należy do innego konta.</p>');
-    return;
+    return null;
   }
   if (a.status !== 'confirmed') {
     fatal(
       a.status === 'pending'
-        ? '<h1>Wizyta czeka na potwierdzenie</h1><p style="margin:0">Kwestionariusz otworzy się, gdy potwierdzę termin. Dostaniesz wtedy e-mail.</p>'
+        ? '<h1>Wizyta czeka na potwierdzenie</h1><p style="margin:0">Kwestionariusz otworzy się, gdy potwierdzę termin.</p>'
         : '<h1>Kwestionariusz jest niedostępny</h1><p style="margin:0">Ta wizyta nie jest już aktywna.</p>',
     );
-    return;
+    return null;
   }
+  backend = {
+    folder: `${user.id}/${appointmentId}`,
+    save: async (state, submit) => {
+      const { data, error } = await supabase.rpc('save_questionnaire', {
+        p_appointment_id: appointmentId,
+        p_answers: state.a,
+        p_step: state.i,
+        p_submit: submit,
+        p_health_consent: submit,
+      });
+      return { submittedAt: (data as QuestionnaireRow | null)?.submitted_at ?? null, error };
+    },
+  };
+  return { saved: row.data as QuestionnaireRow | null, title: `Kwestionariusz – ${fmtDateTime(a.starts_at)}` };
+}
 
-  const saved = row.data as QuestionnaireRow | null;
+async function init(): Promise<void> {
+  if (linkMode) document.querySelector('.kw-links')?.remove();
+  const loaded = linkMode ? await initLink() : await initAccount();
+  if (!loaded) return;
+  const { saved } = loaded;
   submittedAt = saved?.submitted_at ?? null;
   const cache = readCache();
   const fromDb: State = { i: saved?.current_step ?? -1, a: saved?.answers ?? {} };
@@ -255,14 +341,14 @@ async function init(): Promise<void> {
   const state: State =
     cache && (!saved || cache.at > Date.parse(saved.updated_at)) ? { i: cache.i, a: cache.a } : fromDb;
 
-  document.title = `Kwestionariusz – ${fmtDateTime(a.starts_at)} · Zdrówko za zdrowie`;
+  document.title = `${loaded.title} · Zdrówko za zdrowie`;
   const engine = createEngine({
     stage,
     top,
     state,
     onChange: scheduleSave,
-    renderFinish: renderFinish(user),
-    introNote: 'Odpowiedzi zapisują się automatycznie, więc możesz przerwać i wrócić, także na innym urządzeniu.',
+    renderFinish: renderFinish(),
+    introNote: SAVED_NOTE,
   });
   engine.render();
 }

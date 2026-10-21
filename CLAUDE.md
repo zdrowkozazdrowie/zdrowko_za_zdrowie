@@ -28,6 +28,11 @@ UI i treści po polsku, kod i komentarze po angielsku.
    przetwarzanie danych o zdrowiu). Wyniki badań: Storage, bucket `wyniki-badan`, ścieżka `<user>/<wizyta>/<plik>`.
 5. Admin widzi wizyty, terminy, kwestionariusze i log maili w `/admin.html`.
 
+Linki do kwestionariusza (`private.questionnaire_links`, migracja `questionnaire_links`): tajny token na wizytę
+(tworzony triggerem) albo na kwestionariusz bez wizyty (`admin_create_questionnaire`, potem `admin_attach_questionnaire`).
+Strona `/kwestionariusz.html?t=TOKEN` działa bez logowania (`get_/save_questionnaire_by_link`), pliki w `link/<token>/`.
+Admin wysyła link ręcznie (SMS/WhatsApp/e-mail), bo maile są wyłączone do czasu domeny.
+
 Admin = użytkownik z potwierdzonym e-mailem z `private.settings.admin_emails` (ustawiane przez CI
 `private.configure()`).
 

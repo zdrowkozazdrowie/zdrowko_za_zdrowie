@@ -88,11 +88,16 @@
         </div>
 
         <div data-panel="kwestionariusze" class="stack" hidden>
+          <form class="plain q-new" id="q-new" novalidate>
+            <label>Kwestionariusz bez wizyty – dla kogo?<input id="q-label" maxlength="200" placeholder="Np. Anna Kowalska (z Instagrama)"></label>
+            <button class="btn btn-primary" type="submit">Utwórz link</button>
+          </form>
           <div class="filters">
             <select id="q-filter" aria-label="Filtr">
-              <option value="submitted" selected>Wysłane</option>
-              <option value="draft">W trakcie wypełniania</option>
-              <option value="all">Wszystkie</option>
+              <option value="all" selected>Wszystkie</option>
+              <option value="submitted">Wysłane</option>
+              <option value="draft">Niewysłane</option>
+              <option value="standalone">Bez wizyty</option>
             </select>
           </div>
           <div class="table-wrap tall" id="q-list"><p class="loading">Wczytuję…</p></div>

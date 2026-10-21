@@ -116,7 +116,7 @@ select pg_temp.throws($$select public.decide_appointment(current_setting('t.toke
                       'a decision cannot be made twice');
 select pg_temp.logout();
 
-select pg_temp.ok((select html like '%/kwestionariusz.html?wizyta=' || current_setting('t.appt') || '%'
+select pg_temp.ok((select html like '%/kwestionariusz.html?t=' || (select token from private.questionnaire_links l where l.appointment_id = current_setting('t.appt')::uuid and l.revoked_at is null) || '%'
                           and html like '%Do zobaczenia!%'
                      from private.email_outbox
                     where kind = 'client_confirmed' and to_email = 'anna@example.com'),
