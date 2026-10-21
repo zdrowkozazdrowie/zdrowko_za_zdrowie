@@ -56,6 +56,8 @@ Admin = użytkownik z potwierdzonym e-mailem z `private.settings.admin_emails` (
 Zrobione: migracje + 84 asercje testów SQL (przechodzą lokalnie), style, strony: landing z rezerwacją,
 logowanie, nowe hasło, moje wizyty, potwierdzenie, szkielet panelu admina.
 
+Zatwierdzona wersja kwestionariusza (źródło prawdy dla pytań, ciekawostek i wyglądu): `docs/kwestionariusz-prototyp.html`.
+
 Do zrobienia: port silnika kwestionariusza do `src/ts/questionnaire/` + `src/kwestionariusz.html`,
 `src/ts/pages/admin.ts` (+ RPC `admin_email_log`), `scripts/build.mjs` / `dev.mjs`, `package.json`, tsconfig,
 eslint/prettier, `supabase/config.toml`, `supabase/seed.sql`, skrypt konfiguracji Auth (Management API,
