@@ -1,4 +1,8 @@
 /* Layout: one calm column, one question per card, progress rail on top */
+/* The prototype ran where [hidden] was enforced; author display rules would otherwise override it. */
+[hidden] {
+  display: none !important;
+}
 :root {
   --bg: #f1f4ee;
   --card: #ffffff;
@@ -599,4 +603,25 @@ details.sumbox .sum {
 }
 .center {
   text-align: center;
+}
+.file-btn {
+  display: inline-flex;
+  gap: 8px;
+  position: relative;
+  align-self: flex-start;
+  overflow: hidden;
+}
+.file-btn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.file-btn:focus-within {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+.nav .row {
+  margin-left: auto;
+  justify-content: flex-end;
 }

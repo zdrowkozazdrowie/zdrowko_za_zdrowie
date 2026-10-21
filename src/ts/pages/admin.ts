@@ -238,92 +238,88 @@ function actionsHtml(a: Row): string {
   </div>`;
 }
 
-async function openDetail(id: string): Promise<void> {
-  history.replaceState(null, '', `#wizyta-${id}`);
-  $('#detail-title').textContent = 'Wizyta';
-  $('#detail-sub').textContent = '';
-  detailBody.innerHTML = '<p class="loading">Wczytuję…</p>';
-  if (!detail.open) detail.showModal();
-
-  const [{ data, error }, q] = await Promise.all([
-    supabase.from('appointments').select(APPT_SELECT).eq('id', id).maybeSingle(),
-    supabase.from('questionnaires').select('answers,submitted_at,updated_at').eq('appointment_id', id).maybeSingle(),
-  ]);
-  if (error || !data) {
-    detailBody.innerHTML = `<p class="form-error">${esc(error ? errorMessage(error) : 'Nie znaleziono wizyty.')}</p>`;
-    return;
-  }
-  const a = data as Row;
-  const qa = q.data as { answers: Answers; submitted_at: string | null; updated_at: string } | null;
-  $('#detail-title').textContent = clientName(a);
-  $('#detail-sub').textContent = `${a.services?.name ?? ''} · ${fmtDateTime(a.starts_at)}`;
-
-  detailBody.innerHTML = `<div class="stack">
-    <div>${statusPill(a.status)}</div>
-    <dl class="meta-grid">
-      <dt>Usługa</dt><dd>${esc(a.services?.name ?? a.service_id)} (${esc(fmtPrice(a.price_pln))})</dd>
-      <dt>Termin</dt><dd>${esc(fmtDateTime(a.starts_at))}</dd>
-      ${a.starts_at ? `<dt>Forma</dt><dd>${esc(MODE_LABEL[a.mode])}</dd>` : ''}
-      <dt>Płatność</dt><dd>${esc(PAYMENT_LABEL[a.payment_status])}</dd>
-      <dt>E-mail</dt><dd><a href="mailto:${esc(a.profiles?.email ?? '')}">${esc(a.profiles?.email ?? '—')}</a></dd>
-      <dt>Telefon</dt><dd>${a.profiles?.phone ? `<a href="tel:${esc(a.profiles.phone.replace(/\s+/g, ''))}">${esc(a.profiles.phone)}</a>` : '—'}</dd>
-      ${a.client_note ? `<dt>Uwagi klienta</dt><dd>${esc(a.client_note)}</dd>` : ''}
-      ${a.admin_message ? `<dt>Twoja wiadomość</dt><dd>${esc(a.admin_message)}</dd>` : ''}
-      <dt>Zarezerwowano</dt><dd>${esc(fmtShort(a.created_at))}</dd>
-    </dl>
-    ${actionsHtml(a)}
-    <h3 class="section-title">Wyniki badań</h3>
-    <ul class="files" id="d-files"><li>Wczytuję…</li></ul>
-    <h3 class="section-title">Kwestionariusz ${
-      qa?.submitted_at
-        ? `<span class="pill confirmed">wysłany ${esc(fmtShort(qa.submitted_at))}</span>`
-        : qa
-          ? '<span class="pill pending">w trakcie wypełniania</span>'
-          : ''
-    }</h3>
-    ${qa ? answersHtml(qa.answers) : '<p class="muted">Klient jeszcze nie zaczął wypełniać kwestionariusza.</p>'}
-  </div>`;
-
-  detailBody.querySelectorAll<HTMLButtonElement>('[data-status]').forEach((btn) =>
-    btn.addEventListener('click', async () => {
-      if (btn.dataset.armed !== '1' && btn.dataset.status !== 'confirmed') {
-        btn.dataset.armed = '1';
-        btn.textContent = 'Na pewno?';
-        return;
-      }
-      const message = detailBody.querySelector<HTMLTextAreaElement>('#d-msg')?.value.trim() || null;
-      await busy(btn, 'Zapisuję…', async () => {
-        const { error: err } = await supabase.rpc('admin_set_status', {
-          p_id: a.id,
-          p_status: btn.dataset.status as AppointmentStatus,
-          p_message: message,
-        });
-        if (err) return toast(errorMessage(err), 'error');
-        toast('Zapisano. Klient dostanie e-mail.');
-        await reloadAll();
-        await openDetail(a.id);
-      });
-    }),
-  );
-
-  void listFiles(a);
+// ---------------------------------------------------------------------------
+// Questionnaire link box (copy / SMS / WhatsApp / e-mail / new link)
+// ---------------------------------------------------------------------------
+interface LinkInfo {
+  questionnaire_id: string | null;
+  url: string;
+  folders: string[];
+}
+interface Contact {
+  name: string | null;
+  phone: string | null;
+  email: string | null;
 }
 
-async function listFiles(a: Row): Promise<void> {
-  const el = detailBody.querySelector<HTMLElement>('#d-files');
-  if (!el) return;
-  const folder = `${a.user_id}/${a.id}`;
-  const { data, error } = await supabase.storage.from(LAB_BUCKET).list(folder);
-  if (error) {
-    el.innerHTML = `<li>${esc(errorMessage(error))}</li>`;
-    return;
+function linkMessage(c: Contact, url: string): string {
+  const hello = c.name ? `Dzień dobry ${c.name.split(' ')[0]},` : 'Dzień dobry,';
+  return `${hello}\nprzed naszym spotkaniem proszę o wypełnienie krótkiego kwestionariusza (ok. 10 minut): ${url}\nOdpowiedzi zapisują się automatycznie, a na końcu można dołączyć wyniki badań.\nPozdrawiam, Wiktoria Przybylak`;
+}
+
+function linkBoxHtml(info: LinkInfo, c: Contact): string {
+  const msg = linkMessage(c, info.url);
+  const digits = (c.phone ?? '').replace(/[^\d+]/g, '');
+  const wa = digits.replace(/^\+/, '').replace(/^(\d{9})$/, '48$1');
+  return `<div class="link-box">
+    <div class="link-row"><input type="text" readonly value="${esc(info.url)}" aria-label="Link do kwestionariusza" data-link-url>
+      <button class="btn btn-primary btn-sm" type="button" data-link-copy>Kopiuj link</button></div>
+    <div class="appt-actions">
+      <button class="btn btn-outline btn-sm" type="button" data-link-copy-msg>Kopiuj z wiadomością</button>
+      ${digits ? `<a class="btn btn-outline btn-sm" href="sms:${esc(digits)}?body=${encodeURIComponent(msg)}">SMS</a>` : ''}
+      ${wa ? `<a class="btn btn-outline btn-sm" href="https://wa.me/${esc(wa)}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+      ${c.email ? `<a class="btn btn-outline btn-sm" href="mailto:${esc(c.email)}?subject=${encodeURIComponent('Kwestionariusz przed wizytą')}&body=${encodeURIComponent(msg)}">E-mail</a>` : ''}
+      <button class="btn btn-ghost btn-sm" type="button" data-link-reset>Nowy link</button>
+    </div>
+    <p class="muted small">Link działa bez logowania. Wyślij go wybranym kanałem. „Nowy link” wyłącza stary (np. gdy trafił do złej osoby).</p>
+  </div>`;
+}
+
+async function copyText(text: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Skopiowano.');
+  } catch {
+    toast('Nie udało się skopiować. Zaznacz link i skopiuj ręcznie.', 'error');
   }
-  const files = (data ?? []).filter((f) => f.id);
-  el.innerHTML = files.length
-    ? files
+}
+
+function bindLinkBox(root: HTMLElement, info: LinkInfo, c: Contact, reset: () => Promise<void>): void {
+  root.querySelector('[data-link-copy]')?.addEventListener('click', () => void copyText(info.url));
+  root.querySelector('[data-link-copy-msg]')?.addEventListener('click', () => void copyText(linkMessage(c, info.url)));
+  root
+    .querySelector<HTMLInputElement>('[data-link-url]')
+    ?.addEventListener('focus', (e) => (e.target as HTMLInputElement).select());
+  const btn = root.querySelector<HTMLButtonElement>('[data-link-reset]');
+  btn?.addEventListener('click', async () => {
+    if (btn.dataset.armed !== '1') {
+      btn.dataset.armed = '1';
+      btn.textContent = 'Stary link przestanie działać. Na pewno?';
+      return;
+    }
+    await busy(btn, 'Tworzę…', reset);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Lab result files (account folder and link folders)
+// ---------------------------------------------------------------------------
+async function renderFiles(el: HTMLElement | null, folders: string[]): Promise<void> {
+  if (!el) return;
+  const all: { path: string; name: string }[] = [];
+  for (const folder of folders) {
+    const { data, error } = await supabase.storage.from(LAB_BUCKET).list(folder);
+    if (error) {
+      el.innerHTML = `<li>${esc(errorMessage(error))}</li>`;
+      return;
+    }
+    for (const f of data ?? []) if (f.id) all.push({ path: `${folder}/${f.name}`, name: f.name });
+  }
+  el.innerHTML = all.length
+    ? all
         .map(
           (f) =>
-            `<li><span>📄 ${esc(f.name.replace(/^\d+-/, ''))}</span><button class="btn btn-outline btn-sm" type="button" data-file="${esc(`${folder}/${f.name}`)}">Otwórz</button></li>`,
+            `<li><span>📄 ${esc(f.name.replace(/^\d+-/, ''))}</span><button class="btn btn-outline btn-sm" type="button" data-file="${esc(f.path)}">Otwórz</button></li>`,
         )
         .join('')
     : '<li>Brak plików.</li>';
@@ -344,6 +340,193 @@ async function listFiles(a: Row): Promise<void> {
       } else location.href = signed.signedUrl;
     }),
   );
+}
+
+type QFull = {
+  id: string;
+  label: string | null;
+  appointment_id: string | null;
+  answers: Answers;
+  submitted_at: string | null;
+  updated_at: string;
+};
+
+function questionnaireStatus(q: QFull | null): string {
+  if (q?.submitted_at) return `<span class="pill confirmed">wysłany ${esc(fmtShort(q.submitted_at))}</span>`;
+  if (q && Object.keys(q.answers ?? {}).length) return '<span class="pill pending">w trakcie wypełniania</span>';
+  return '<span class="pill cancelled">nie rozpoczęty</span>';
+}
+
+// ---------------------------------------------------------------------------
+// Appointment detail (actions, questionnaire link + answers, lab results)
+// ---------------------------------------------------------------------------
+async function openDetail(id: string): Promise<void> {
+  history.replaceState(null, '', `#wizyta-${id}`);
+  $('#detail-title').textContent = 'Wizyta';
+  $('#detail-sub').textContent = '';
+  detailBody.innerHTML = '<p class="loading">Wczytuję…</p>';
+  if (!detail.open) detail.showModal();
+
+  const [{ data, error }, q, link] = await Promise.all([
+    supabase.from('appointments').select(APPT_SELECT).eq('id', id).maybeSingle(),
+    supabase
+      .from('questionnaires')
+      .select('id,label,appointment_id,answers,submitted_at,updated_at')
+      .eq('appointment_id', id)
+      .maybeSingle(),
+    supabase.rpc('admin_questionnaire_link', { p_appointment_id: id }),
+  ]);
+  if (error || !data) {
+    detailBody.innerHTML = `<p class="form-error">${esc(error ? errorMessage(error) : 'Nie znaleziono wizyty.')}</p>`;
+    return;
+  }
+  const a = data as Row;
+  const qa = q.data as QFull | null;
+  const info = link.data as LinkInfo | null;
+  const contact: Contact = {
+    name: a.profiles?.full_name ?? null,
+    phone: a.profiles?.phone ?? null,
+    email: a.profiles?.email ?? null,
+  };
+  $('#detail-title').textContent = clientName(a);
+  $('#detail-sub').textContent = `${a.services?.name ?? ''} · ${fmtDateTime(a.starts_at)}`;
+
+  detailBody.innerHTML = `<div class="stack">
+    <div>${statusPill(a.status)}</div>
+    <dl class="meta-grid">
+      <dt>Usługa</dt><dd>${esc(a.services?.name ?? a.service_id)} (${esc(fmtPrice(a.price_pln))})</dd>
+      <dt>Termin</dt><dd>${esc(fmtDateTime(a.starts_at))}</dd>
+      ${a.starts_at ? `<dt>Forma</dt><dd>${esc(MODE_LABEL[a.mode])}</dd>` : ''}
+      <dt>Płatność</dt><dd>${esc(PAYMENT_LABEL[a.payment_status])}</dd>
+      <dt>E-mail</dt><dd><a href="mailto:${esc(a.profiles?.email ?? '')}">${esc(a.profiles?.email ?? '—')}</a></dd>
+      <dt>Telefon</dt><dd>${a.profiles?.phone ? `<a href="tel:${esc(a.profiles.phone.replace(/\s+/g, ''))}">${esc(a.profiles.phone)}</a>` : '—'}</dd>
+      ${a.client_note ? `<dt>Uwagi klienta</dt><dd>${esc(a.client_note)}</dd>` : ''}
+      ${a.admin_message ? `<dt>Twoja wiadomość</dt><dd>${esc(a.admin_message)}</dd>` : ''}
+      <dt>Zarezerwowano</dt><dd>${esc(fmtShort(a.created_at))}</dd>
+    </dl>
+    ${actionsHtml(a)}
+    <h3 class="section-title">Link do kwestionariusza ${questionnaireStatus(qa)}</h3>
+    ${
+      info && isActive(a)
+        ? linkBoxHtml(info, contact)
+        : `<p class="muted">${link.error ? esc(errorMessage(link.error)) : 'Wizyta nie jest aktywna, więc link jest wyłączony.'}</p>`
+    }
+    <h3 class="section-title">Wyniki badań</h3>
+    <ul class="files" id="d-files"><li>Wczytuję…</li></ul>
+    <h3 class="section-title">Odpowiedzi</h3>
+    ${qa && Object.keys(qa.answers ?? {}).length ? answersHtml(qa.answers) : '<p class="muted">Klient jeszcze nie zaczął wypełniać kwestionariusza.</p>'}
+  </div>`;
+
+  if (info && isActive(a)) {
+    bindLinkBox(detailBody, info, contact, async () => {
+      const { error: err } = await supabase.rpc('admin_questionnaire_link', { p_appointment_id: id, p_reset: true });
+      if (err) return toast(errorMessage(err), 'error');
+      toast('Utworzono nowy link. Stary już nie działa.');
+      await openDetail(id);
+    });
+  }
+
+  detailBody.querySelectorAll<HTMLButtonElement>('[data-status]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      if (btn.dataset.armed !== '1' && btn.dataset.status !== 'confirmed') {
+        btn.dataset.armed = '1';
+        btn.textContent = 'Na pewno?';
+        return;
+      }
+      const message = detailBody.querySelector<HTMLTextAreaElement>('#d-msg')?.value.trim() || null;
+      await busy(btn, 'Zapisuję…', async () => {
+        const { error: err } = await supabase.rpc('admin_set_status', {
+          p_id: a.id,
+          p_status: btn.dataset.status as AppointmentStatus,
+          p_message: message,
+        });
+        if (err) return toast(errorMessage(err), 'error');
+        toast('Zapisano.');
+        await reloadAll();
+        await openDetail(a.id);
+      });
+    }),
+  );
+
+  void renderFiles(detailBody.querySelector('#d-files'), [`${a.user_id}/${a.id}`, ...(info?.folders ?? [])]);
+}
+
+// ---------------------------------------------------------------------------
+// Questionnaire without an appointment
+// ---------------------------------------------------------------------------
+async function openQuestionnaire(id: string): Promise<void> {
+  history.replaceState(null, '', `#kwestionariusz-${id}`);
+  $('#detail-title').textContent = 'Kwestionariusz';
+  $('#detail-sub').textContent = 'bez wizyty';
+  detailBody.innerHTML = '<p class="loading">Wczytuję…</p>';
+  if (!detail.open) detail.showModal();
+
+  const [q, link] = await Promise.all([
+    supabase
+      .from('questionnaires')
+      .select('id,label,appointment_id,answers,submitted_at,updated_at')
+      .eq('id', id)
+      .maybeSingle(),
+    supabase.rpc('admin_questionnaire_link', { p_questionnaire_id: id }),
+  ]);
+  const qa = q.data as QFull | null;
+  if (q.error || !qa) {
+    detailBody.innerHTML = `<p class="form-error">${esc(q.error ? errorMessage(q.error) : 'Nie znaleziono kwestionariusza.')}</p>`;
+    return;
+  }
+  if (qa.appointment_id) return openDetail(qa.appointment_id);
+  const info = link.data as LinkInfo | null;
+  const contact: Contact = { name: qa.label, phone: null, email: null };
+  const free = appointments.filter((a) => !one(a.questionnaires));
+  $('#detail-title').textContent = qa.label ?? 'Kwestionariusz';
+
+  detailBody.innerHTML = `<div class="stack">
+    <div>${questionnaireStatus(qa)}</div>
+    <h3 class="section-title">Link do kwestionariusza</h3>
+    ${info ? linkBoxHtml(info, contact) : `<p class="form-error">${esc(errorMessage(link.error))}</p>`}
+    <h3 class="section-title">Przypisz do wizyty</h3>
+    <p class="muted small">Gdy ta osoba umówi wizytę, przypisz do niej kwestionariusz. Odpowiedzi pojawią się wtedy przy wizycie i w historii klienta.</p>
+    <div class="filters">
+      <select id="q-attach" aria-label="Wizyta">${
+        free.length
+          ? free
+              .slice()
+              .reverse()
+              .map((a) => `<option value="${a.id}">${esc(clientName(a))} · ${esc(fmtDateTime(a.starts_at))}</option>`)
+              .join('')
+          : '<option value="">Brak wizyt bez kwestionariusza</option>'
+      }</select>
+      <button class="btn btn-outline btn-sm" type="button" id="q-attach-btn" ${free.length ? '' : 'disabled'}>Przypisz</button>
+    </div>
+    <h3 class="section-title">Wyniki badań</h3>
+    <ul class="files" id="d-files"><li>Wczytuję…</li></ul>
+    <h3 class="section-title">Odpowiedzi</h3>
+    ${Object.keys(qa.answers ?? {}).length ? answersHtml(qa.answers) : '<p class="muted">Jeszcze nikt nie zaczął wypełniać.</p>'}
+  </div>`;
+
+  if (info) {
+    bindLinkBox(detailBody, info, contact, async () => {
+      const { error: err } = await supabase.rpc('admin_questionnaire_link', { p_questionnaire_id: id, p_reset: true });
+      if (err) return toast(errorMessage(err), 'error');
+      toast('Utworzono nowy link. Stary już nie działa.');
+      await openQuestionnaire(id);
+    });
+  }
+  $<HTMLButtonElement>('#q-attach-btn', detailBody).addEventListener('click', async (e) => {
+    const appt = $<HTMLSelectElement>('#q-attach', detailBody).value;
+    if (!appt) return;
+    await busy(e.currentTarget as HTMLButtonElement, 'Przypisuję…', async () => {
+      const { error: err } = await supabase.rpc('admin_attach_questionnaire', {
+        p_questionnaire_id: id,
+        p_appointment_id: appt,
+      });
+      if (err) return toast(errorMessage(err), 'error');
+      toast('Kwestionariusz przypisany do wizyty.');
+      await reloadAll();
+      await openDetail(appt);
+    });
+  });
+  void renderFiles(detailBody.querySelector('#d-files'), info?.folders ?? []);
 }
 
 $$('[data-close]', detail).forEach((el) => el.addEventListener('click', () => detail.close()));
@@ -548,32 +731,34 @@ async function renderQuestionnaires(): Promise<void> {
   let query = supabase
     .from('questionnaires')
     .select(
-      'appointment_id,submitted_at,updated_at,current_step,profiles!questionnaires_user_id_fkey(full_name,email),appointments!questionnaires_appointment_id_fkey(starts_at,status,services(name))',
+      'id,label,appointment_id,answers,submitted_at,updated_at,profiles!questionnaires_user_id_fkey(full_name,email),appointments!questionnaires_appointment_id_fkey(starts_at,status,services(name))',
     )
     .order('updated_at', { ascending: false })
     .limit(500);
   if (filter === 'submitted') query = query.not('submitted_at', 'is', null);
   if (filter === 'draft') query = query.is('submitted_at', null);
+  if (filter === 'standalone') query = query.is('appointment_id', null);
   const { data, error } = await query;
   if (error) {
     $('#q-list').innerHTML = `<p class="form-error">${esc(errorMessage(error))}</p>`;
     return;
   }
-  type QRow = {
-    appointment_id: string;
-    submitted_at: string | null;
-    updated_at: string;
+  type QRow = QFull & {
     profiles: { full_name: string | null; email: string } | null;
     appointments: { starts_at: string | null; status: AppointmentStatus; services: { name: string } | null } | null;
   };
   const rows = (data ?? []) as unknown as QRow[];
   $('#q-list').innerHTML = rows.length
-    ? `<table class="data"><thead><tr><th>Klient</th><th>Wizyta</th><th>Status</th><th>Ostatnia zmiana</th></tr></thead><tbody>${rows
+    ? `<table class="data"><thead><tr><th>Osoba</th><th>Wizyta</th><th>Status</th><th>Ostatnia zmiana</th></tr></thead><tbody>${rows
         .map(
-          (r) => `<tr class="click" data-open="${r.appointment_id}">
-          <td><strong>${esc(r.profiles?.full_name ?? r.profiles?.email ?? '—')}</strong></td>
-          <td>${esc(r.appointments?.services?.name ?? '')}<br><span class="muted">${esc(fmtDateTime(r.appointments?.starts_at ?? null))}</span></td>
-          <td>${r.submitted_at ? `<span class="pill confirmed">wysłany ${esc(fmtShort(r.submitted_at))}</span>` : '<span class="pill pending">w trakcie</span>'}</td>
+          (r) => `<tr class="click" data-q="${r.id}" data-appt="${r.appointment_id ?? ''}">
+          <td><strong>${esc(r.profiles?.full_name ?? r.label ?? r.profiles?.email ?? '—')}</strong></td>
+          <td>${
+            r.appointment_id
+              ? `${esc(r.appointments?.services?.name ?? '')}<br><span class="muted">${esc(fmtDateTime(r.appointments?.starts_at ?? null))}</span>`
+              : '<span class="muted">bez wizyty</span>'
+          }</td>
+          <td>${questionnaireStatus(r)}</td>
           <td>${esc(fmtShort(r.updated_at))}</td>
         </tr>`,
         )
@@ -582,8 +767,26 @@ async function renderQuestionnaires(): Promise<void> {
 }
 $('#q-filter').addEventListener('change', () => void renderQuestionnaires());
 $('#q-list').addEventListener('click', (e) => {
-  const tr = (e.target as HTMLElement).closest<HTMLElement>('[data-open]');
-  if (tr?.dataset.open) void openDetail(tr.dataset.open);
+  const tr = (e.target as HTMLElement).closest<HTMLElement>('[data-q]');
+  if (!tr) return;
+  if (tr.dataset.appt) void openDetail(tr.dataset.appt);
+  else void openQuestionnaire(tr.dataset.q ?? '');
+});
+$<HTMLFormElement>('#q-new').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = $<HTMLInputElement>('#q-label');
+  const label = input.value.trim();
+  if (!label) {
+    input.focus();
+    return toast('Wpisz, dla kogo jest kwestionariusz.', 'error');
+  }
+  await busy($<HTMLButtonElement>('#q-new button[type=submit]'), 'Tworzę…', async () => {
+    const { data, error } = await supabase.rpc('admin_create_questionnaire', { p_label: label });
+    if (error) return toast(errorMessage(error), 'error');
+    input.value = '';
+    await renderQuestionnaires();
+    await openQuestionnaire((data as LinkInfo).questionnaire_id ?? '');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -748,8 +951,8 @@ async function init(): Promise<void> {
   $<HTMLInputElement>('#s-day').value = tomorrow;
   $<HTMLInputElement>('#s-day').min = new Date().toISOString().slice(0, 10);
   await reloadAll();
-  const match = /^#wizyta-([0-9a-f-]{36})$/i.exec(location.hash);
-  if (match?.[1]) void openDetail(match[1]);
+  const match = /^#(wizyta|kwestionariusz)-([0-9a-f-]{36})$/i.exec(location.hash);
+  if (match?.[2]) void (match[1] === 'wizyta' ? openDetail(match[2]) : openQuestionnaire(match[2]));
 }
 
 void init();
