@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Panel · Zdrówko za zdrowie</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/site.css?v=__BUILD__">
+  <link rel="stylesheet" href="/styles/app.css?v=__BUILD__">
+</head>
+<body class="app">
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="/"><img src="/assets/logo.png" alt=""><span class="brand-text">Zdrówko za zdrowie</span></a>
+    <nav class="nav-links app-nav" aria-label="Konto"><a class="home-link" href="/">Strona główna</a><span id="account-nav"></span></nav>
+  </div>
+</header>
+<main class="app-main">
+  <div class="wrap">
+    <section class="panel" id="no-access" hidden>
+      <h1>Brak dostępu</h1>
+      <p>Ta strona jest dostępna tylko dla administratora.</p>
+    </section>
+    <div id="admin" hidden>
+      <section class="panel stack">
+        <div class="admin-bar">
+          <h1>Panel</h1>
+          <div class="seg" role="tablist" aria-label="Sekcje">
+            <button type="button" role="tab" data-tab="wizyty" aria-selected="true">Wizyty</button>
+            <button type="button" role="tab" data-tab="terminy" aria-selected="false">Terminy</button>
+            <button type="button" role="tab" data-tab="maile" aria-selected="false">E-maile</button>
+          </div>
+        </div>
+        <div data-panel="wizyty" class="stack">
+          <div class="filters">
+            <select id="f-status" aria-label="Status">
+              <option value="todo">Do potwierdzenia</option>
+              <option value="upcoming" selected>Nadchodzące</option>
+              <option value="past">Minione</option>
+              <option value="all">Wszystkie</option>
+            </select>
+            <input id="f-search" type="search" placeholder="Szukaj klienta…" aria-label="Szukaj klienta">
+          </div>
+          <div class="list" id="a-list"><p class="loading">Wczytuję…</p></div>
+        </div>
+        <div data-panel="terminy" class="stack" hidden>
+          <form class="plain slot-form" id="slot-form" novalidate>
+            <label>Dzień<input id="s-day" type="date" required></label>
+            <label>Od<input id="s-from" type="time" value="09:00" required></label>
+            <label>Do<input id="s-to" type="time" value="15:00" required></label>
+            <label>Długość wizyty (min)<input id="s-dur" type="number" min="10" max="480" value="60" required></label>
+            <label>Przerwa (min)<input id="s-break" type="number" min="0" max="240" value="0"></label>
+            <button class="btn btn-primary" type="submit">Dodaj terminy</button>
+          </form>
+          <div id="s-list" class="stack"><p class="loading">Wczytuję…</p></div>
+        </div>
+        <div data-panel="maile" class="stack" hidden>
+          <p class="muted small">Ostatnie wiadomości wysłane przez system. Status „pominięta” oznacza brak klucza Resend (np. środowisko testowe).</p>
+          <div class="table-wrap" id="m-list"><p class="loading">Wczytuję…</p></div>
+        </div>
+      </section>
+    </div>
+    <dialog class="sheet" id="detail" aria-labelledby="detail-title">
+      <div class="modal-head">
+        <div><h3 id="detail-title">Wizyta</h3><p id="detail-sub"></p></div>
+        <button class="close" type="button" aria-label="Zamknij" data-close>×</button>
+      </div>
+      <div class="sheet-body" id="detail-body"></div>
+    </dialog>
+  </div>
+</main>
+<script type="module" src="/js/admin.js?v=__BUILD__"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Nowe hasło · Zdrówko za zdrowie</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/site.css?v=__BUILD__">
+  <link rel="stylesheet" href="/styles/app.css?v=__BUILD__">
+</head>
+<body class="app">
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="/"><img src="/assets/logo.png" alt=""><span class="brand-text">Zdrówko za zdrowie</span></a>
+    <nav class="nav-links app-nav" aria-label="Konto"><a class="home-link" href="/">Strona główna</a><span id="account-nav"></span></nav>
+  </div>
+</header>
+<main class="app-main">
+  <div class="wrap">
+    <section class="panel narrow">
+      <h1>Ustaw nowe hasło</h1>
+      <form class="plain stack" id="password-form" novalidate>
+        <label>Nowe hasło<input id="new-password" type="password" required minlength="8" autocomplete="new-password"></label>
+        <label>Powtórz hasło<input id="new-password-2" type="password" required minlength="8" autocomplete="new-password"></label>
+        <p class="form-error" id="pw-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-block" type="submit">Zapisz hasło</button>
+      </form>
+    </section>
+  </div>
+</main>
+<script type="module" src="/js/new-password.js?v=__BUILD__"></script>
+</body>
+</html>
