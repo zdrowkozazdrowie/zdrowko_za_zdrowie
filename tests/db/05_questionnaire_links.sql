@@ -98,12 +98,12 @@ select pg_temp.logout();
 -- Standalone questionnaire (no appointment yet)
 select pg_temp.login(current_setting('t.admin')::uuid);
 select pg_temp.throws($$select public.admin_create_questionnaire('  ')$$, '%dla kogo%', 'label is required');
-select set_config('t.q', public.admin_create_questionnaire('Basia z Instagrama') ->> 'questionnaire_id', true);
+select set_config('t.q', public.admin_create_questionnaire('Basia (test SQL)') ->> 'questionnaire_id', true);
 select pg_temp.logout();
 select set_config('t.qtoken', (select token from private.questionnaire_links where questionnaire_id = current_setting('t.q')::uuid), true);
 
 select pg_temp.login_anon();
-select pg_temp.eq((select label from public.get_questionnaire_by_link(current_setting('t.qtoken'))), 'Basia z Instagrama',
+select pg_temp.eq((select label from public.get_questionnaire_by_link(current_setting('t.qtoken'))), 'Basia (test SQL)',
                   'standalone link opens without an appointment');
 select pg_temp.eq((select service_name from public.get_questionnaire_by_link(current_setting('t.qtoken'))), null::text,
                   'standalone link has no appointment');
@@ -114,7 +114,7 @@ select pg_temp.logout();
 select pg_temp.ok((select submitted_at is not null and appointment_id is null and user_id is null
                      from public.questionnaires where id = current_setting('t.q')::uuid), 'standalone answers are stored');
 select pg_temp.eq((select count(*) from private.email_outbox where kind = 'admin_questionnaire_submitted'
-                    and subject like '%Basia%'), 1::bigint, 'admin is notified about a standalone questionnaire');
+                    and subject like '%Basia (test SQL)%'), 1::bigint, 'admin is notified about a standalone questionnaire');
 
 -- Clients do not see standalone questionnaires
 select pg_temp.login(current_setting('t.ola')::uuid);

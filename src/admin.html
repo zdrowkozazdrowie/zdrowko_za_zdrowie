@@ -30,7 +30,10 @@
       <section class="panel stack">
         <div class="admin-bar">
           <h1>Panel</h1>
-          <button class="btn btn-outline btn-sm" type="button" id="refresh">Odśwież</button>
+          <div class="filters">
+            <button class="btn btn-primary btn-sm" type="button" id="new-link">+ Link do kwestionariusza</button>
+            <button class="btn btn-outline btn-sm" type="button" id="refresh">Odśwież</button>
+          </div>
         </div>
         <div class="stats" id="stats"></div>
         <div class="seg" role="tablist" aria-label="Sekcje">
@@ -57,6 +60,36 @@
         </div>
 
         <div data-panel="kalendarz" class="stack" hidden>
+          <details class="box" id="wh-box">
+            <summary><strong>Godziny pracy</strong> <span class="muted small" id="wh-summary"></span></summary>
+            <form class="plain stack" id="wh-form" novalidate>
+              <p class="muted small">Zaznacz dni i godziny, w których przyjmujesz. Terminy dla klientów utworzą się same na wybrany okres i będą dosuwane codziennie. Zarezerwowane wizyty zostają bez zmian.</p>
+              <div class="wh-days" id="wh-days"></div>
+              <div class="wh-settings">
+                <label>Długość wizyty (min)<input id="wh-slot" type="number" min="10" max="480" step="5" value="60"></label>
+                <label>Przerwa między wizytami (min)<input id="wh-break" type="number" min="0" max="240" step="5" value="0"></label>
+                <label>Udostępniaj terminy na
+                  <select id="wh-horizon"><option value="14">2 tygodnie</option><option value="28">4 tygodnie</option><option value="56" selected>8 tygodni</option><option value="84">12 tygodni</option></select>
+                </label>
+              </div>
+              <div><button class="btn btn-primary" type="submit">Zapisz godziny pracy</button></div>
+            </form>
+          </details>
+          <details class="box" id="off-box">
+            <summary><strong>Dni wolne i blokady</strong> <span class="muted small" id="off-summary"></span></summary>
+            <div class="stack">
+              <form class="plain off-form" id="off-form" novalidate>
+                <label>Dzień<input id="off-day" type="date" required></label>
+                <label class="check"><input id="off-all" type="checkbox" checked> Cały dzień</label>
+                <label>Od<input id="off-from" type="time" value="09:00" disabled></label>
+                <label>Do<input id="off-to" type="time" value="12:00" disabled></label>
+                <label>Notatka<input id="off-note" maxlength="200" placeholder="Np. urlop"></label>
+                <button class="btn btn-primary" type="submit">Zablokuj</button>
+              </form>
+              <p class="muted small">Wolne terminy w tym czasie znikną. Wizyty już zarezerwowane zostają i trzeba je odwołać ręcznie. Kliknij dzień w kalendarzu, żeby go tu wybrać.</p>
+              <div class="list" id="off-list"></div>
+            </div>
+          </details>
           <div class="cal-bar">
             <button class="btn btn-outline btn-sm" type="button" id="cal-prev" aria-label="Poprzedni miesiąc">←</button>
             <h3 id="cal-title"></h3>

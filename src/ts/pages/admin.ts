@@ -92,7 +92,7 @@ const takenSlotIds = (): Set<string> =>
 
 async function reloadAll(): Promise<void> {
   try {
-    await Promise.all([loadAppointments(), loadSlots(), loadClients()]);
+    await Promise.all([loadAppointments(), loadSlots(), loadClients(), loadSchedule()]);
   } catch (error) {
     toast(errorMessage(error), 'error');
   }
@@ -101,6 +101,7 @@ async function reloadAll(): Promise<void> {
   renderCalendar();
   renderSlots();
   renderClients();
+  renderSchedule();
   void renderQuestionnaires();
 }
 
@@ -575,8 +576,15 @@ function renderCalendar(): void {
     const key = d.toISOString().slice(0, 10);
     const out = d.getUTCMonth() !== m;
     if (i >= 35 && out) break;
-    cells.push(`<div class="day${out ? ' out' : ''}${key === today ? ' today' : ''}">
-      <span class="num">${d.getUTCDate()}</span>${(byDay.get(key) ?? []).join('')}</div>`);
+    const offs = timeOff.filter((t) => t.day === key);
+    const wholeDay = offs.some((t) => !t.starts_at);
+    const offTag = wholeDay
+      ? '<span class="tag-off">wolne</span>'
+      : offs.length
+        ? `<span class="tag-off">blokada ${offs.map((t) => `${hhmm(t.starts_at)}–${hhmm(t.ends_at)}`).join(', ')}</span>`
+        : '';
+    cells.push(`<div class="day${out ? ' out' : ''}${key === today ? ' today' : ''}${wholeDay ? ' dayoff' : ''}" data-key="${key}" title="Kliknij, aby zablokować ten dzień">
+      <span class="num">${d.getUTCDate()}</span>${offTag}${(byDay.get(key) ?? []).join('')}</div>`);
   }
   $('#cal').innerHTML = dows + cells.join('');
 }
@@ -591,6 +599,208 @@ $('#cal-today').addEventListener('click', () => {
   const [y, m] = dayKey(new Date().toISOString()).split('-').map(Number);
   calMonth = { y: y as number, m: (m as number) - 1 };
   renderCalendar();
+});
+
+// ---------------------------------------------------------------------------
+// Working hours (weekly schedule) and time off
+// ---------------------------------------------------------------------------
+interface WorkHour {
+  weekday: number;
+  starts_at: string;
+  ends_at: string;
+  slot_min: number;
+  break_min: number;
+}
+interface TimeOff {
+  id: string;
+  day: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  note: string | null;
+}
+
+const WEEKDAYS = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
+const WEEKDAYS_SHORT = ['pon', 'wt', 'śr', 'czw', 'pt', 'sob', 'nd'];
+let workHours: WorkHour[] = [];
+let timeOff: TimeOff[] = [];
+let horizonDays = 56;
+
+const hhmm = (t: string | null): string => (t ?? '').slice(0, 5);
+const todayKey = (): string => dayKey(new Date().toISOString());
+
+async function loadSchedule(): Promise<void> {
+  const [wh, off, cfg] = await Promise.all([
+    supabase
+      .from('work_hours')
+      .select('weekday,starts_at,ends_at,slot_min,break_min')
+      .order('weekday')
+      .order('starts_at'),
+    supabase
+      .from('time_off')
+      .select('id,day,starts_at,ends_at,note')
+      .gte('day', todayKey())
+      .order('day')
+      .order('starts_at'),
+    supabase.rpc('admin_booking_settings'),
+  ]);
+  if (wh.error) throw wh.error;
+  if (off.error) throw off.error;
+  workHours = (wh.data ?? []) as WorkHour[];
+  timeOff = (off.data ?? []) as TimeOff[];
+  horizonDays = Number((cfg.data as { horizon_days?: number } | null)?.horizon_days ?? 56);
+}
+
+function rangeHtml(from = '09:00', to = '15:00'): string {
+  return `<span class="wh-range"><input type="time" value="${esc(from)}" aria-label="Od" data-from> – <input type="time" value="${esc(to)}" aria-label="Do" data-to>
+    <button class="btn btn-ghost btn-sm" type="button" data-remove aria-label="Usuń przedział">×</button></span>`;
+}
+
+function renderSchedule(): void {
+  $('#wh-days').innerHTML = WEEKDAYS.map((name, i) => {
+    const rules = workHours.filter((r) => r.weekday === i + 1);
+    return `<div class="wh-day${rules.length ? '' : ' off'}" data-weekday="${i + 1}">
+      <label class="check"><input type="checkbox" data-on ${rules.length ? 'checked' : ''}> ${name}</label>
+      <div class="wh-ranges">${(rules.length ? rules : [null]).map((r) => (r ? rangeHtml(hhmm(r.starts_at), hhmm(r.ends_at)) : rangeHtml())).join('')}
+        <button class="btn btn-ghost btn-sm" type="button" data-add>+ przedział</button></div>
+    </div>`;
+  }).join('');
+  if (workHours[0]) {
+    $<HTMLInputElement>('#wh-slot').value = String(workHours[0].slot_min);
+    $<HTMLInputElement>('#wh-break').value = String(workHours[0].break_min);
+  }
+  const horizon = $<HTMLSelectElement>('#wh-horizon');
+  if (![...horizon.options].some((o) => o.value === String(horizonDays))) {
+    horizon.insertAdjacentHTML('beforeend', `<option value="${horizonDays}">${horizonDays} dni</option>`);
+  }
+  horizon.value = String(horizonDays);
+
+  const byDay = WEEKDAYS_SHORT.map((d, i) => {
+    const rules = workHours.filter((r) => r.weekday === i + 1);
+    return rules.length ? `${d} ${rules.map((r) => `${hhmm(r.starts_at)}–${hhmm(r.ends_at)}`).join(', ')}` : '';
+  }).filter(Boolean);
+  $('#wh-summary').textContent = byDay.length
+    ? byDay.join(' · ')
+    : 'nie ustawiono – klienci widzą tylko terminy dodane ręcznie';
+  // First visit: open the editor so the admin sees where to start.
+  if (!workHours.length) $<HTMLDetailsElement>('#wh-box').open = true;
+
+  $('#off-summary').textContent = timeOff.length ? `zaplanowane: ${timeOff.length}` : '';
+  $('#off-list').innerHTML = timeOff.length
+    ? timeOff
+        .map(
+          (t) => `<div class="off-row"><span><strong>${esc(fmtDay(`${t.day}T12:00:00Z`))}</strong> · ${
+            t.starts_at ? `${hhmm(t.starts_at)}–${hhmm(t.ends_at)}` : 'cały dzień'
+          }${t.note ? ` · ${esc(t.note)}` : ''}</span>
+          <button class="btn btn-ghost btn-sm" type="button" data-off-del="${t.id}">Usuń</button></div>`,
+        )
+        .join('')
+    : '<p class="muted small">Brak zaplanowanych dni wolnych.</p>';
+}
+
+$('#wh-days').addEventListener('click', (e) => {
+  const target = e.target as HTMLElement;
+  const day = target.closest<HTMLElement>('.wh-day');
+  if (!day) return;
+  if (target.closest('[data-add]')) {
+    const last = [...day.querySelectorAll<HTMLInputElement>('[data-to]')].at(-1)?.value || '12:00';
+    target
+      .closest('[data-add]')
+      ?.insertAdjacentHTML('beforebegin', rangeHtml(last, last < '20:00' ? '20:00' : '23:00'));
+    const on = day.querySelector<HTMLInputElement>('[data-on]');
+    if (on) on.checked = true;
+    day.classList.remove('off');
+  }
+  if (target.closest('[data-remove]')) {
+    if (day.querySelectorAll('.wh-range').length > 1) target.closest('.wh-range')?.remove();
+    else {
+      const on = day.querySelector<HTMLInputElement>('[data-on]');
+      if (on) on.checked = false;
+      day.classList.add('off');
+    }
+  }
+});
+$('#wh-days').addEventListener('change', (e) => {
+  const input = e.target as HTMLInputElement;
+  if (input.matches('[data-on]')) input.closest('.wh-day')?.classList.toggle('off', !input.checked);
+});
+
+$<HTMLFormElement>('#wh-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const rules = $$<HTMLElement>('.wh-day', $('#wh-days')).flatMap((day) => {
+    if (!day.querySelector<HTMLInputElement>('[data-on]')?.checked) return [];
+    return $$<HTMLElement>('.wh-range', day).map((r) => ({
+      weekday: Number(day.dataset.weekday),
+      from: r.querySelector<HTMLInputElement>('[data-from]')?.value ?? '',
+      to: r.querySelector<HTMLInputElement>('[data-to]')?.value ?? '',
+    }));
+  });
+  await busy($<HTMLButtonElement>('#wh-form button[type=submit]'), 'Zapisuję…', async () => {
+    const { data, error } = await supabase.rpc('admin_set_work_hours', {
+      p_rules: rules,
+      p_slot_min: Number($<HTMLInputElement>('#wh-slot').value),
+      p_break_min: Number($<HTMLInputElement>('#wh-break').value) || 0,
+      p_horizon_days: Number($<HTMLSelectElement>('#wh-horizon').value),
+    });
+    if (error) return toast(errorMessage(error), 'error');
+    toast(rules.length ? `Zapisano. Wolne terminy dla klientów: ${data}.` : 'Zapisano. Brak stałych godzin pracy.');
+    await reloadAll();
+  });
+});
+
+$<HTMLInputElement>('#off-all').addEventListener('change', (e) => {
+  const all = (e.target as HTMLInputElement).checked;
+  $<HTMLInputElement>('#off-from').disabled = all;
+  $<HTMLInputElement>('#off-to').disabled = all;
+});
+
+$<HTMLFormElement>('#off-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const day = $<HTMLInputElement>('#off-day').value;
+  if (!day) return toast('Wybierz dzień.', 'error');
+  const all = $<HTMLInputElement>('#off-all').checked;
+  await busy($<HTMLButtonElement>('#off-form button[type=submit]'), 'Zapisuję…', async () => {
+    const { error } = await supabase.rpc('admin_add_time_off', {
+      p_day: day,
+      p_from: all ? null : $<HTMLInputElement>('#off-from').value,
+      p_to: all ? null : $<HTMLInputElement>('#off-to').value,
+      p_note: $<HTMLInputElement>('#off-note').value.trim() || null,
+    });
+    if (error) return toast(errorMessage(error), 'error');
+    $<HTMLInputElement>('#off-note').value = '';
+    const booked = appointments.filter((a) => isActive(a) && a.starts_at && dayKey(a.starts_at) === day).length;
+    toast(
+      booked
+        ? `Zablokowano. Uwaga: ${booked} zarezerwowana wizyta w tym dniu zostaje – odwołaj ją ręcznie.`
+        : 'Zablokowano.',
+    );
+    await reloadAll();
+  });
+});
+
+$('#off-list').addEventListener('click', async (e) => {
+  const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-off-del]');
+  if (!btn) return;
+  btn.disabled = true;
+  const { error } = await supabase.rpc('admin_delete_time_off', { p_id: btn.dataset.offDel });
+  if (error) {
+    btn.disabled = false;
+    return toast(errorMessage(error), 'error');
+  }
+  toast('Usunięto blokadę. Terminy z godzin pracy wróciły.');
+  await reloadAll();
+});
+
+// Clicking a calendar day (outside an appointment) prepares a day off for it.
+$('#cal').addEventListener('click', (e) => {
+  const target = e.target as HTMLElement;
+  if (target.closest('[data-open]')) return;
+  const key = target.closest<HTMLElement>('[data-key]')?.dataset.key;
+  if (!key || key < todayKey()) return;
+  $<HTMLInputElement>('#off-day').value = key;
+  const box = $<HTMLDetailsElement>('#off-box');
+  box.open = true;
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $<HTMLInputElement>('#off-note').focus({ preventScroll: true });
 });
 
 // ---------------------------------------------------------------------------
@@ -938,6 +1148,12 @@ $<HTMLButtonElement>('#db-csv').addEventListener('click', async (e) => {
 // Init
 // ---------------------------------------------------------------------------
 $('#refresh').addEventListener('click', () => void reloadAll());
+$('#new-link').addEventListener('click', () => {
+  showTab('kwestionariusze');
+  const input = $<HTMLInputElement>('#q-label');
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  input.focus({ preventScroll: true });
+});
 
 async function init(): Promise<void> {
   await requireUser();
@@ -949,6 +1165,8 @@ async function init(): Promise<void> {
   $('#admin').hidden = false;
   const tomorrow = new Date(Date.now() + 86400_000).toISOString().slice(0, 10);
   $<HTMLInputElement>('#s-day').value = tomorrow;
+  $<HTMLInputElement>('#off-day').value = tomorrow;
+  $<HTMLInputElement>('#off-day').min = new Date().toISOString().slice(0, 10);
   $<HTMLInputElement>('#s-day').min = new Date().toISOString().slice(0, 10);
   await reloadAll();
   const match = /^#(wizyta|kwestionariusz)-([0-9a-f-]{36})$/i.exec(location.hash);
