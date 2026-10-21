@@ -830,3 +830,20 @@ textarea {
 #account-nav {
   display: contents;
 }
+
+/* E-books: coming soon */
+.soon-note {
+  display: inline-block;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin: 4px 0 0;
+}
+.ebooks-soon .card {
+  filter: blur(2.5px) grayscale(0.25);
+  opacity: 0.75;
+  pointer-events: none;
+  user-select: none;
+}
