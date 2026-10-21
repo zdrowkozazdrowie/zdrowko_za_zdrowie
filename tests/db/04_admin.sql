@@ -8,10 +8,11 @@ select set_config('t.anna',  pg_temp.mk_user('anna@example.com', 'Anna Kowalska'
 select pg_temp.login(current_setting('t.admin')::uuid);
 select public.admin_add_slots(((now() at time zone 'Europe/Warsaw')::date + 3), '09:00', '11:00', 60, 0);
 select pg_temp.logout();
+select set_config('t.slot', (select id::text from public.slots order by starts_at limit 1), true);
 
 select pg_temp.login(current_setting('t.anna')::uuid);
 select set_config('t.appt',
-  public.book_appointment('pierwsza-konsultacja', (select id from public.slots order by starts_at limit 1), 'online', null, null, '+48 600 100 200')::text,
+  public.book_appointment('pierwsza-konsultacja', current_setting('t.slot')::uuid, 'online', null, null, '+48 600 100 200')::text,
   true);
 select pg_temp.logout();
 
