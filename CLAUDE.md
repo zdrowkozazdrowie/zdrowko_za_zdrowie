@@ -11,7 +11,10 @@ UI i treści po polsku, kod i komentarze po angielsku.
 - **E-maile** wysyła Postgres: `private.enqueue_email()` → `pg_net` → Resend API; worker `pg_cron` co minutę
   (`private.process_email_queue()`), retry do 5 prób. Bez sekretu `resend_api_key` maile mają status `skipped`.
 - **Hosting frontu:** statyczny build (esbuild + TypeScript) na Cloudflare Pages (Supabase nie hostuje stron).
-- **Logowanie:** Google OAuth + e-mail/hasło (Supabase Auth, PKCE).
+  Stary adres GitHub Pages przekierowuje na nowy (`scripts/legacy-redirect.mjs`).
+- **Logowanie:** bez hasła – link + 6-cyfrowy kod z e-maila (`signInWithOtp`/`verifyOtp`) oraz Google OAuth (PKCE).
+- **Brak własnej domeny (stan na 2026-10-21):** maile nie wychodzą (`skipped`), klienci logują się przez Google.
+  Po dodaniu domeny wystarczy konfiguracja (README → „E-maile i własna domena”), bez zmian w kodzie.
 - **Płatności:** TODO. Kolumny `payment_status` itd. są gotowe, webhook ma wołać `private.mark_paid()`.
 
 ## Przepływ wizyty
@@ -51,19 +54,20 @@ Admin = użytkownik z potwierdzonym e-mailem z `private.settings.admin_emails` (
 - Opcje „podgrzać w pracy”: bez opiekacza. Sprzęt w kuchni: osobne pytanie wielokrotnego wyboru.
 - Możliwość zaczęcia od nowa (z potwierdzeniem, które da się zamknąć).
 
-## Stan prac (gałąź `supabase-platform`)
+## Stan prac
 
-Zrobione: migracje + 84 asercje testów SQL (przechodzą lokalnie), style, strony: landing z rezerwacją,
-logowanie, nowe hasło, moje wizyty, potwierdzenie, szkielet panelu admina.
+Zrobione: migracje + testy SQL, frontend (landing z rezerwacją, logowanie bez hasła, moje wizyty, potwierdzenie,
+kwestionariusz z zapisem do bazy i uploadem wyników, panel admina: wizyty, kalendarz, terminy, klienci,
+kwestionariusze, e-maile, podgląd bazy), build/dev, E2E Playwright, CI/CD (`.github/workflows/ci.yml`), README.
 
 Zatwierdzona wersja kwestionariusza (źródło prawdy dla pytań, ciekawostek i wyglądu): `docs/kwestionariusz-prototyp.html`.
+Pytania w kodzie: `src/ts/questionnaire/questions.ts` (wygenerowane 1:1 z prototypu).
 
-Do zrobienia: port silnika kwestionariusza do `src/ts/questionnaire/` + `src/kwestionariusz.html`,
-`src/ts/pages/admin.ts` (+ RPC `admin_email_log`), `scripts/build.mjs` / `dev.mjs`, `package.json`, tsconfig,
-eslint/prettier, `supabase/config.toml`, `supabase/seed.sql`, skrypt konfiguracji Auth (Management API,
-polskie szablony maili), GitHub Actions (CI: format/lint/typecheck/build, `supabase start` + testy SQL, E2E
-Playwright; CD: `db push`, konfiguracja, deploy na Cloudflare Pages), README z krokami konfiguracji.
+Do zrobienia: płatności (TODO w schemacie), sprzedaż e-booków online.
 
 ## Komendy
 
-- Testy bazy: `supabase start && npm run test:db` (lub `DB_URL=... scripts/test-db.sh`)
+- `npm run dev` – serwer na http://127.0.0.1:4173 (lokalny Supabase: `npx supabase start`)
+- `npm run check` – formatowanie, lint, typy, build
+- `npm run test:db` – testy SQL (lokalny Supabase), `npm run test:e2e` – Playwright (po `npm run build`)
+- Konfiguracja produkcji i sekrety: README → „Konfiguracja produkcji”

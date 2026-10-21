@@ -47,7 +47,7 @@ function card(a: Row): string {
 async function load(): Promise<void> {
   const { data, error } = await supabase
     .from('appointments')
-    .select('*, services(name), questionnaires(submitted_at)')
+    .select('*, services(name), questionnaires!questionnaires_appointment_id_fkey(submitted_at)')
     .order('starts_at', { ascending: false, nullsFirst: true })
     .order('created_at', { ascending: false });
   if (error) {

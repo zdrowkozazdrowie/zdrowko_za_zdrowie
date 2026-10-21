@@ -1,3 +1,13 @@
 *.pdf
 1babc319-c506-4e74-bebf-040187709dac.png
 .DS_Store
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
+test-results/
+playwright-report/
+_legacy/

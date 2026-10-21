@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/styles/site.css?v=__BUILD__">
   <link rel="stylesheet" href="/styles/app.css?v=__BUILD__">
 </head>
-<body class="app">
+<body class="app admin">
 <header>
   <div class="wrap nav">
     <a class="brand" href="/"><img src="/assets/logo.png" alt=""><span class="brand-text">Zdrówko za zdrowie</span></a>
@@ -30,12 +30,19 @@
       <section class="panel stack">
         <div class="admin-bar">
           <h1>Panel</h1>
-          <div class="seg" role="tablist" aria-label="Sekcje">
-            <button type="button" role="tab" data-tab="wizyty" aria-selected="true">Wizyty</button>
-            <button type="button" role="tab" data-tab="terminy" aria-selected="false">Terminy</button>
-            <button type="button" role="tab" data-tab="maile" aria-selected="false">E-maile</button>
-          </div>
+          <button class="btn btn-outline btn-sm" type="button" id="refresh">Odśwież</button>
         </div>
+        <div class="stats" id="stats"></div>
+        <div class="seg" role="tablist" aria-label="Sekcje">
+          <button type="button" role="tab" data-tab="wizyty" aria-selected="true">Wizyty</button>
+          <button type="button" role="tab" data-tab="kalendarz" aria-selected="false">Kalendarz</button>
+          <button type="button" role="tab" data-tab="terminy" aria-selected="false">Terminy</button>
+          <button type="button" role="tab" data-tab="klienci" aria-selected="false">Klienci</button>
+          <button type="button" role="tab" data-tab="kwestionariusze" aria-selected="false">Kwestionariusze</button>
+          <button type="button" role="tab" data-tab="maile" aria-selected="false">E-maile</button>
+          <button type="button" role="tab" data-tab="baza" aria-selected="false">Baza danych</button>
+        </div>
+
         <div data-panel="wizyty" class="stack">
           <div class="filters">
             <select id="f-status" aria-label="Status">
@@ -48,6 +55,20 @@
           </div>
           <div class="list" id="a-list"><p class="loading">Wczytuję…</p></div>
         </div>
+
+        <div data-panel="kalendarz" class="stack" hidden>
+          <div class="cal-bar">
+            <button class="btn btn-outline btn-sm" type="button" id="cal-prev" aria-label="Poprzedni miesiąc">←</button>
+            <h3 id="cal-title"></h3>
+            <div class="filters">
+              <button class="btn btn-ghost btn-sm" type="button" id="cal-today">Dziś</button>
+              <button class="btn btn-outline btn-sm" type="button" id="cal-next" aria-label="Następny miesiąc">→</button>
+            </div>
+          </div>
+          <div class="cal-legend"><span><i style="background:#fff4e0"></i>Do potwierdzenia</span><span><i style="background:var(--green-soft)"></i>Potwierdzona</span><span><i style="background:var(--teal-soft)"></i>Zakończona</span><span><i style="background:#f3f6f4"></i>Wolny termin</span></div>
+          <div class="cal" id="cal"></div>
+        </div>
+
         <div data-panel="terminy" class="stack" hidden>
           <form class="plain slot-form" id="slot-form" novalidate>
             <label>Dzień<input id="s-day" type="date" required></label>
@@ -55,13 +76,42 @@
             <label>Do<input id="s-to" type="time" value="15:00" required></label>
             <label>Długość wizyty (min)<input id="s-dur" type="number" min="10" max="480" value="60" required></label>
             <label>Przerwa (min)<input id="s-break" type="number" min="0" max="240" value="0"></label>
+            <label>Powtórz co tydzień (tygodnie)<input id="s-weeks" type="number" min="1" max="12" value="1"></label>
             <button class="btn btn-primary" type="submit">Dodaj terminy</button>
           </form>
           <div id="s-list" class="stack"><p class="loading">Wczytuję…</p></div>
         </div>
+
+        <div data-panel="klienci" class="stack" hidden>
+          <div class="filters"><input id="c-search" type="search" placeholder="Szukaj po imieniu, e-mailu, telefonie…" aria-label="Szukaj klienta"></div>
+          <div class="table-wrap tall" id="c-list"><p class="loading">Wczytuję…</p></div>
+        </div>
+
+        <div data-panel="kwestionariusze" class="stack" hidden>
+          <div class="filters">
+            <select id="q-filter" aria-label="Filtr">
+              <option value="submitted" selected>Wysłane</option>
+              <option value="draft">W trakcie wypełniania</option>
+              <option value="all">Wszystkie</option>
+            </select>
+          </div>
+          <div class="table-wrap tall" id="q-list"><p class="loading">Wczytuję…</p></div>
+        </div>
+
         <div data-panel="maile" class="stack" hidden>
-          <p class="muted small">Ostatnie wiadomości wysłane przez system. Status „pominięta” oznacza brak klucza Resend (np. środowisko testowe).</p>
-          <div class="table-wrap" id="m-list"><p class="loading">Wczytuję…</p></div>
+          <p class="muted small">Ostatnie wiadomości wysłane przez system. Status „pominięta” oznacza brak klucza Resend (maile wyłączone do czasu podpięcia domeny).</p>
+          <div class="table-wrap tall" id="m-list"><p class="loading">Wczytuję…</p></div>
+        </div>
+
+        <div data-panel="baza" class="stack" hidden>
+          <p class="muted small">Podgląd tabel w bazie (tylko odczyt). Zmiany rób w zakładkach powyżej.</p>
+          <div class="filters">
+            <select id="db-table" aria-label="Tabela"></select>
+            <input id="db-search" type="search" placeholder="Szukaj w wierszach…" aria-label="Szukaj w wierszach">
+            <button class="btn btn-outline btn-sm" type="button" id="db-csv">Pobierz CSV</button>
+          </div>
+          <div class="table-wrap tall" id="db-rows"><p class="loading">Wybierz tabelę.</p></div>
+          <div class="pager" id="db-pager"></div>
         </div>
       </section>
     </div>

@@ -1,26 +1,19 @@
 import { getSession, mountAccountNav, safeNext } from '../lib/auth';
 import { supabase } from '../lib/supabase';
-import { $, $$, errorMessage } from '../lib/ui';
-
-type Mode = 'login' | 'register';
+import { $, busy, errorMessage } from '../lib/ui';
 
 const params = new URLSearchParams(location.search);
 const hashParams = new URLSearchParams(location.hash.slice(1));
 const next = safeNext(params.get('next'));
 const returnUrl = `${location.origin}/logowanie.html?next=${encodeURIComponent(next)}`;
 
-const form = $<HTMLFormElement>('#auth-form');
-const nameField = $('#name-field');
-const nameInput = $<HTMLInputElement>('#full_name');
+const emailForm = $<HTMLFormElement>('#email-form');
+const codeForm = $<HTMLFormElement>('#code-form');
 const emailInput = $<HTMLInputElement>('#email');
-const passwordInput = $<HTMLInputElement>('#password');
-const passwordField = $('#password-field');
+const codeInput = $<HTMLInputElement>('#code');
 const errorEl = $('#auth-error');
 const infoEl = $('#auth-info');
-const submit = $<HTMLButtonElement>('#auth-submit');
-const forgot = $<HTMLButtonElement>('#forgot');
-let mode: Mode = 'login';
-let resetMode = false;
+let sentTo = '';
 
 function message(kind: 'error' | 'info', text: string | null): void {
   const el = kind === 'error' ? errorEl : infoEl;
@@ -29,33 +22,13 @@ function message(kind: 'error' | 'info', text: string | null): void {
   if (text) (kind === 'error' ? infoEl : errorEl).hidden = true;
 }
 
-function setMode(m: Mode): void {
-  mode = m;
-  resetMode = false;
-  $$<HTMLButtonElement>('.seg [data-mode]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === m)));
-  nameField.hidden = m !== 'register';
-  passwordField.hidden = false;
-  passwordInput.autocomplete = m === 'register' ? 'new-password' : 'current-password';
-  submit.textContent = m === 'register' ? 'Załóż konto' : 'Zaloguj się';
-  forgot.hidden = m !== 'login';
-  $('#auth-title').textContent = m === 'register' ? 'Załóż konto' : 'Zaloguj się';
-  message('error', null);
-  message('info', null);
+function showCodeStep(email: string): void {
+  sentTo = email;
+  emailForm.hidden = true;
+  codeForm.hidden = false;
+  message('info', `Wysłałam link i kod na adres ${email}. Sprawdź skrzynkę (także spam).`);
+  codeInput.focus();
 }
-
-$$<HTMLButtonElement>('.seg [data-mode]').forEach((b) =>
-  b.addEventListener('click', () => setMode(b.dataset.mode as Mode)),
-);
-
-forgot.addEventListener('click', () => {
-  resetMode = true;
-  passwordField.hidden = true;
-  forgot.hidden = true;
-  submit.textContent = 'Wyślij link do zmiany hasła';
-  $('#auth-title').textContent = 'Nie pamiętasz hasła?';
-  message('info', 'Podaj e-mail, a wyślę link do ustawienia nowego hasła.');
-  emailInput.focus();
-});
 
 $<HTMLButtonElement>('#google').addEventListener('click', async () => {
   const { error } = await supabase.auth.signInWithOAuth({
@@ -65,47 +38,39 @@ $<HTMLButtonElement>('#google').addEventListener('click', async () => {
   if (error) message('error', errorMessage(error));
 });
 
-form.addEventListener('submit', async (e) => {
+emailForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   message('error', null);
   const email = emailInput.value.trim();
-  const password = passwordInput.value;
-  if (!emailInput.checkValidity() || !email) return message('error', 'Podaj poprawny adres e-mail.');
+  if (!email || !emailInput.checkValidity()) return message('error', 'Podaj poprawny adres e-mail.');
+  await busy($<HTMLButtonElement>('#email-submit'), 'Wysyłam…', async () => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: returnUrl, shouldCreateUser: true },
+    });
+    if (error) return message('error', errorMessage(error));
+    showCodeStep(email);
+  });
+});
 
-  submit.disabled = true;
-  try {
-    if (resetMode) {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${location.origin}/nowe-haslo.html`,
-      });
-      if (error) return message('error', errorMessage(error));
-      return message('info', 'Jeśli konto istnieje, wysłałam link do zmiany hasła. Sprawdź skrzynkę (także spam).');
-    }
-    if (password.length < 8) return message('error', 'Hasło musi mieć co najmniej 8 znaków.');
-
-    if (mode === 'register') {
-      const fullName = nameInput.value.trim();
-      if (!fullName) return message('error', 'Podaj imię i nazwisko.');
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: returnUrl, data: { full_name: fullName } },
-      });
-      if (error) return message('error', errorMessage(error));
-      if (data.session) return location.replace(next);
-      form.reset();
-      return message(
-        'info',
-        'Wysłałam e-mail z linkiem aktywacyjnym. Kliknij go, aby dokończyć rejestrację (sprawdź też spam).',
-      );
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+codeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  message('error', null);
+  const token = codeInput.value.replace(/\s+/g, '');
+  if (!/^\d{6,10}$/.test(token)) return message('error', 'Wpisz kod z e-maila (same cyfry).');
+  await busy($<HTMLButtonElement>('#code-submit'), 'Sprawdzam…', async () => {
+    const { error } = await supabase.auth.verifyOtp({ email: sentTo, token, type: 'email' });
     if (error) return message('error', errorMessage(error));
     location.replace(next);
-  } finally {
-    submit.disabled = false;
-  }
+  });
+});
+
+$<HTMLButtonElement>('#change-email').addEventListener('click', () => {
+  codeForm.hidden = true;
+  emailForm.hidden = false;
+  codeForm.reset();
+  message('info', null);
+  emailInput.focus();
 });
 
 async function init(): Promise<void> {
@@ -117,11 +82,13 @@ async function init(): Promise<void> {
   }
   const error = params.get('error_description') ?? hashParams.get('error_description');
   if (error) {
-    message('error', /expired|invalid/i.test(error) ? 'Link wygasł lub był już użyty. Zaloguj się albo wyślij nowy.' : error);
-  } else if (params.has('code')) {
-    message('info', 'Adres e-mail potwierdzony. Zaloguj się, aby kontynuować.');
+    message(
+      'error',
+      /expired|invalid|code verifier/i.test(error)
+        ? 'Link wygasł, był już użyty albo otworzył się w innej przeglądarce. Wyślij nowy lub zaloguj się kodem.'
+        : error,
+    );
   }
-  if (params.get('tryb') === 'rejestracja') setMode('register');
   void mountAccountNav(document.getElementById('account-nav'));
 }
 

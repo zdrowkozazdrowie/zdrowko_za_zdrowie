@@ -24,26 +24,25 @@
   <div class="wrap">
     <section class="panel narrow" id="auth">
       <h1 id="auth-title">Zaloguj się</h1>
-      <p class="muted" id="auth-lead">Zaloguj się, aby umówić wizytę, wypełnić kwestionariusz i sprawdzić swoje wizyty.</p>
+      <p class="muted" id="auth-lead">Zaloguj się, aby umówić wizytę, wypełnić kwestionariusz i sprawdzić swoje wizyty. Konto założy się samo przy pierwszym logowaniu.</p>
       <div class="stack">
         <button class="btn btn-google btn-block" type="button" id="google">
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
           Kontynuuj z Google
         </button>
-        <div class="divider">albo e-mailem</div>
-        <div class="seg" role="tablist" aria-label="Sposób">
-          <button type="button" role="tab" data-mode="login" aria-selected="true">Logowanie</button>
-          <button type="button" role="tab" data-mode="register" aria-selected="false">Rejestracja</button>
-        </div>
-        <form class="plain stack" id="auth-form" novalidate>
-          <label id="name-field" hidden>Imię i nazwisko<input name="full_name" id="full_name" autocomplete="name" maxlength="200"></label>
-          <label>E-mail<input name="email" id="email" type="email" required autocomplete="email"></label>
-          <label id="password-field">Hasło<input name="password" id="password" type="password" required minlength="8" autocomplete="current-password"></label>
-          <p class="form-error" id="auth-error" role="alert" hidden></p>
-          <p class="notice" id="auth-info" role="status" hidden></p>
-          <button class="btn btn-primary btn-block" type="submit" id="auth-submit">Zaloguj się</button>
-          <button class="btn btn-ghost" type="button" id="forgot">Nie pamiętam hasła</button>
+        <div class="divider">albo e-mailem, bez hasła</div>
+        <form class="plain stack" id="email-form" novalidate>
+          <label>E-mail<input name="email" id="email" type="email" required autocomplete="email" inputmode="email"></label>
+          <button class="btn btn-primary btn-block" type="submit" id="email-submit">Wyślij link do logowania</button>
         </form>
+        <form class="plain stack" id="code-form" novalidate hidden>
+          <label>Kod z e-maila<input name="code" id="code" required autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6,10}" maxlength="10"></label>
+          <p class="muted small">Link otwórz w tej samej przeglądarce. Na innym urządzeniu wpisz tutaj kod z wiadomości.</p>
+          <button class="btn btn-primary btn-block" type="submit" id="code-submit">Zaloguj kodem</button>
+          <button class="btn btn-ghost" type="button" id="change-email">Zmień adres e-mail</button>
+        </form>
+        <p class="form-error" id="auth-error" role="alert" hidden></p>
+        <p class="notice" id="auth-info" role="status" hidden></p>
       </div>
     </section>
   </div>

@@ -27,11 +27,21 @@ const dateTimeFmt = new Intl.DateTimeFormat('pl-PL', {
   hour: '2-digit',
   minute: '2-digit',
 });
-const dayFmt = new Intl.DateTimeFormat('pl-PL', { timeZone: TIME_ZONE, weekday: 'long', day: 'numeric', month: 'long' });
+const dayFmt = new Intl.DateTimeFormat('pl-PL', {
+  timeZone: TIME_ZONE,
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+});
 const dayShortFmt = new Intl.DateTimeFormat('pl-PL', { timeZone: TIME_ZONE, weekday: 'short' });
 const dayNumFmt = new Intl.DateTimeFormat('pl-PL', { timeZone: TIME_ZONE, day: 'numeric', month: 'short' });
 const timeFmt = new Intl.DateTimeFormat('pl-PL', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit' });
-const keyFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
+const keyFmt = new Intl.DateTimeFormat('en-CA', {
+  timeZone: TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 const shortFmt = new Intl.DateTimeFormat('pl-PL', {
   timeZone: TIME_ZONE,
   day: '2-digit',
@@ -41,7 +51,8 @@ const shortFmt = new Intl.DateTimeFormat('pl-PL', {
   minute: '2-digit',
 });
 
-export const fmtDateTime = (iso: string | null): string => (iso ? dateTimeFmt.format(new Date(iso)) : 'termin do ustalenia');
+export const fmtDateTime = (iso: string | null): string =>
+  iso ? dateTimeFmt.format(new Date(iso)) : 'termin do ustalenia';
 export const fmtDay = (iso: string): string => dayFmt.format(new Date(iso));
 export const fmtDayShort = (iso: string): string => dayShortFmt.format(new Date(iso));
 export const fmtDayNum = (iso: string): string => dayNumFmt.format(new Date(iso));
@@ -50,7 +61,8 @@ export const fmtShort = (iso: string | null): string => (iso ? shortFmt.format(n
 /** YYYY-MM-DD in the clinic's time zone. */
 export const dayKey = (iso: string): string => keyFmt.format(new Date(iso));
 
-export const fmtPrice = (pln: number): string => (Number(pln) === 0 ? 'bezpłatnie' : `${Number(pln).toLocaleString('pl-PL')} zł`);
+export const fmtPrice = (pln: number): string =>
+  Number(pln) === 0 ? 'bezpłatnie' : `${Number(pln).toLocaleString('pl-PL')} zł`;
 
 export const STATUS_LABEL: Record<AppointmentStatus, string> = {
   pending: 'Czeka na potwierdzenie',
@@ -74,13 +86,14 @@ export function statusPill(status: AppointmentStatus): string {
 }
 
 const AUTH_ERRORS: [RegExp, string][] = [
-  [/invalid login credentials/i, 'Nieprawidłowy e-mail lub hasło.'],
-  [/email not confirmed/i, 'Najpierw potwierdź adres e-mail. Link wysłałam w wiadomości po rejestracji.'],
-  [/user already registered/i, 'Konto z tym adresem już istnieje. Zaloguj się albo zresetuj hasło.'],
-  [/password should be at least/i, 'Hasło musi mieć co najmniej 8 znaków.'],
-  [/weak password|password is known to be weak/i, 'To hasło jest zbyt słabe. Wybierz dłuższe i mniej oczywiste.'],
+  [/token has expired or is invalid|otp.*(expired|invalid)/i, 'Kod jest nieprawidłowy lub wygasł. Wyślij nowy.'],
   [/rate limit|too many requests|security purposes/i, 'Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.'],
   [/unable to validate email address|invalid format/i, 'Nieprawidłowy adres e-mail.'],
+  [
+    /error sending (magic link|confirmation|otp)|smtp/i,
+    'Nie udało się wysłać e-maila. Zaloguj się przez Google albo spróbuj później.',
+  ],
+  [/signups not allowed|provider is not enabled/i, 'Ta metoda logowania jest teraz wyłączona.'],
   [/failed to fetch|networkerror|load failed/i, 'Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie.'],
   [/jwt expired/i, 'Sesja wygasła. Zaloguj się ponownie.'],
 ];

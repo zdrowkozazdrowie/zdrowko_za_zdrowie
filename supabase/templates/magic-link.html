@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pl">
+<body style="margin:0;background:#f2f7f3;font-family:Arial,Helvetica,sans-serif;color:#1d2b24">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f7f3;padding:24px 0">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;padding:28px">
+        <tr><td style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#1f8a2c;font-weight:bold;padding-bottom:6px">Zdrówko za zdrowie</td></tr>
+        <tr><td style="font-size:22px;font-weight:bold;padding-bottom:16px">Zaloguj się</td></tr>
+        <tr><td style="font-size:15px;line-height:1.6">
+          <p>Kliknij przycisk, aby się zalogować. Link działa przez godzinę i tylko raz.</p>
+          <p><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 22px;border-radius:999px;background:#3cb54a;color:#ffffff;text-decoration:none;font-weight:bold">Zaloguj się</a></p>
+          <p>Otwierasz pocztę na innym urządzeniu? Wpisz na stronie logowania ten kod:</p>
+          <p style="font-size:28px;font-weight:bold;letter-spacing:6px;margin:8px 0 16px">{{ .Token }}</p>
+          <p style="font-size:13px;color:#5b6b63">Jeśli to nie Ty prosisz o logowanie, zignoruj tę wiadomość.</p>
+        </td></tr>
+        <tr><td style="padding-top:24px;font-size:12px;color:#5b6b63">mgr Wiktoria Przybylak · Dietetyk kliniczny</td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

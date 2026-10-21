@@ -3,7 +3,32 @@ import { supabase } from '../lib/supabase';
 import type { Profile, Service, Slot } from '../lib/types';
 import { $, $$, dayKey, errorMessage, esc, fmtDayNum, fmtDayShort, fmtPrice, fmtTime, setYear } from '../lib/ui';
 
+// The draft survives the trip through the login page. localStorage (not sessionStorage), because
+// the e-mail login link opens in a new tab.
 const DRAFT_KEY = 'booking-draft';
+const storage = {
+  get: (): string | null => {
+    try {
+      return localStorage.getItem(DRAFT_KEY);
+    } catch {
+      return null;
+    }
+  },
+  set: (value: string): void => {
+    try {
+      localStorage.setItem(DRAFT_KEY, value);
+    } catch {
+      /* private mode: the draft is simply not restored */
+    }
+  },
+  clear: (): void => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
+  },
+};
 const EMAIL = 'wiktoriaprzybylak9@wp.pl';
 
 interface Draft {
@@ -76,7 +101,11 @@ async function loadSlots(): Promise<void> {
   slots = (data ?? []) as Slot[];
   if (selectedSlot && !slots.some((s) => s.id === selectedSlot)) selectedSlot = null;
   const firstWithSelection = selectedSlot ? slots.find((s) => s.id === selectedSlot) : undefined;
-  selectedDay = firstWithSelection ? dayKey(firstWithSelection.starts_at) : slots[0] ? dayKey(slots[0].starts_at) : null;
+  selectedDay = firstWithSelection
+    ? dayKey(firstWithSelection.starts_at)
+    : slots[0]
+      ? dayKey(slots[0].starts_at)
+      : null;
   renderSlots();
 }
 
@@ -192,7 +221,7 @@ form.addEventListener('submit', async (e) => {
 
   const user = await getUser();
   if (!user) {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    storage.set(JSON.stringify(draft));
     location.href = loginUrl('/?rezerwacja=1');
     return;
   }
@@ -212,7 +241,7 @@ form.addEventListener('submit', async (e) => {
     if (service.requires_slot) void loadSlots();
     return;
   }
-  sessionStorage.removeItem(DRAFT_KEY);
+  storage.clear();
   selectedSlot = null;
   slots = [];
   form.hidden = true;
@@ -291,7 +320,7 @@ if (params.has('rezerwacja')) {
   history.replaceState(null, '', '/#umow');
   let draft: Draft | undefined;
   try {
-    draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? 'null') ?? undefined;
+    draft = JSON.parse(storage.get() ?? 'null') ?? undefined;
   } catch {
     draft = undefined;
   }
