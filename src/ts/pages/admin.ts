@@ -361,6 +361,26 @@ function questionnaireStatus(q: QFull | null): string {
 // ---------------------------------------------------------------------------
 // Appointment detail (actions, questionnaire link + answers, lab results)
 // ---------------------------------------------------------------------------
+function bindDeleteQuestionnaire(id: string, after: () => Promise<void>): void {
+  const btn = detailBody.querySelector<HTMLButtonElement>('[data-q-delete]');
+  btn?.addEventListener('click', async () => {
+    if (btn.dataset.armed !== '1') {
+      btn.dataset.armed = '1';
+      btn.textContent = 'Na pewno usunąć odpowiedzi?';
+      return;
+    }
+    await busy(btn, 'Usuwam…', async () => {
+      const { error } = await supabase.rpc('admin_delete_questionnaire', { p_id: id });
+      if (error) return toast(errorMessage(error), 'error');
+      toast('Kwestionariusz usunięty.');
+      await reloadAll();
+      await after();
+    });
+  });
+}
+const DELETE_BTN =
+  '<div><button class="btn btn-danger btn-sm" type="button" data-q-delete>Usuń kwestionariusz</button></div>';
+
 async function openDetail(id: string): Promise<void> {
   history.replaceState(null, '', `#wizyta-${id}`);
   $('#detail-title').textContent = 'Wizyta';
@@ -416,6 +436,7 @@ async function openDetail(id: string): Promise<void> {
     <ul class="files" id="d-files"><li>Wczytuję…</li></ul>
     <h3 class="section-title">Odpowiedzi</h3>
     ${qa && Object.keys(qa.answers ?? {}).length ? answersHtml(qa.answers) : '<p class="muted">Klient jeszcze nie zaczął wypełniać kwestionariusza.</p>'}
+    ${qa ? DELETE_BTN : ''}
   </div>`;
 
   if (info && isActive(a)) {
@@ -449,6 +470,7 @@ async function openDetail(id: string): Promise<void> {
     }),
   );
 
+  if (qa) bindDeleteQuestionnaire(qa.id, () => openDetail(id));
   void renderFiles(detailBody.querySelector('#d-files'), [`${a.user_id}/${a.id}`, ...(info?.folders ?? [])]);
 }
 
@@ -503,6 +525,7 @@ async function openQuestionnaire(id: string): Promise<void> {
     <ul class="files" id="d-files"><li>Wczytuję…</li></ul>
     <h3 class="section-title">Odpowiedzi</h3>
     ${Object.keys(qa.answers ?? {}).length ? answersHtml(qa.answers) : '<p class="muted">Jeszcze nikt nie zaczął wypełniać.</p>'}
+    ${DELETE_BTN}
   </div>`;
 
   if (info) {
@@ -527,6 +550,7 @@ async function openQuestionnaire(id: string): Promise<void> {
       await openDetail(appt);
     });
   });
+  bindDeleteQuestionnaire(id, async () => detail.close());
   void renderFiles(detailBody.querySelector('#d-files'), info?.folders ?? []);
 }
 
