@@ -183,3 +183,46 @@ test('questionnaire without an appointment', async ({ browser }) => {
   await expect(admin.locator('#detail .answers')).toContainText('Imię: Basia');
   await adminCtx.close();
 });
+
+test('working hours generate bookable slots', async ({ browser }) => {
+  const adminCtx = await browser.newContext();
+  const admin = await adminCtx.newPage();
+  await admin.goto('/admin.html');
+  await loginWithCode(admin, ADMIN);
+  await admin.click('.seg [data-tab="kalendarz"]');
+  const box = admin.locator('#wh-box');
+  if (!(await box.evaluate((el) => (el as HTMLDetailsElement).open))) await box.locator('summary').click();
+  // Every day 10:00–12:00, 60-minute visits.
+  for (let d = 1; d <= 7; d++) {
+    const day = admin.locator(`.wh-day[data-weekday="${d}"]`);
+    await day.locator('[data-on]').check();
+    await day.locator('[data-from]').first().fill('10:00');
+    await day.locator('[data-to]').first().fill('12:00');
+  }
+  await admin.fill('#wh-slot', '60');
+  await admin.fill('#wh-break', '0');
+  await admin.click('#wh-form button[type=submit]');
+  await expect(admin.locator('#toast')).toContainText('Wolne terminy dla klientów');
+  await expect(admin.locator('#wh-summary')).toContainText('pon 10:00–12:00');
+
+  // Block a whole day by clicking it in the calendar.
+  const target = dayFromToday(5);
+  const cell = admin.locator(`#cal .day[data-key="${target}"]`);
+  if (!(await cell.count())) await admin.click('#cal-next');
+  await admin.locator(`#cal .day[data-key="${target}"] .num`).click();
+  await expect(admin.locator('#off-day')).toHaveValue(target);
+  await admin.fill('#off-note', 'Urlop');
+  await admin.click('#off-form button[type=submit]');
+  await expect(admin.locator('#off-list')).toContainText('Urlop');
+  await expect(admin.locator(`#cal .day[data-key="${target}"]`)).toHaveClass(/dayoff/);
+  await adminCtx.close();
+
+  // Clients see the generated slots, but not on the day off.
+  const anonCtx = await browser.newContext();
+  const page = await anonCtx.newPage();
+  await page.goto('/');
+  await page.locator('.hero [data-book]').first().click();
+  await expect(page.locator('#b-days .day').first()).toBeVisible();
+  expect(await page.locator(`#b-days [data-day="${target}"]`).count()).toBe(0);
+  await anonCtx.close();
+});

@@ -31,13 +31,13 @@ select pg_temp.logout();
 
 -- Admin
 select pg_temp.login(current_setting('t.admin')::uuid);
-select pg_temp.eq((select count(*) from public.admin_clients()), 2::bigint, 'admin sees all clients');
+select pg_temp.eq((select count(*) from public.admin_clients()), (select count(*) from public.profiles), 'admin sees all clients');
 select pg_temp.eq((select appointments_upcoming from public.admin_clients() where id = current_setting('t.anna')::uuid), 1::bigint,
                   'client overview counts the upcoming appointment');
 select pg_temp.eq((select phone from public.admin_clients() where id = current_setting('t.anna')::uuid), '+48 600 100 200',
                   'client overview includes contact data');
 select pg_temp.ok((select count(*) from public.admin_email_log()) >= 2, 'admin reads the e-mail log');
-select pg_temp.eq((select count(*) from public.admin_db_tables()), 6::bigint, 'six tables are browsable');
+select pg_temp.eq((select count(*) from public.admin_db_tables()), 8::bigint, 'eight tables are browsable');
 select pg_temp.eq((public.admin_db_rows('appointments') ->> 'total')::int, 1, 'appointments table has one row');
 select pg_temp.eq((public.admin_db_rows('profiles', 50, 0, 'kowalska') ->> 'total')::int, 1, 'search filters rows');
 select pg_temp.eq((public.admin_db_rows('profiles', 1, 1) -> 'rows' -> 0 ->> '_rn'), null::text, 'helper column is not exposed');

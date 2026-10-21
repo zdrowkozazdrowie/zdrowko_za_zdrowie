@@ -633,3 +633,115 @@ table.data td.json {
     flex-direction: column;
   }
 }
+
+/* Working hours and time off */
+details.box {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  background: #fff;
+}
+details.box > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+details.box > summary::before {
+  content: '▸';
+  color: var(--green-dark);
+  transition: transform 0.15s;
+}
+details.box[open] > summary::before {
+  transform: rotate(90deg);
+}
+details.box[open] > summary {
+  margin-bottom: 14px;
+}
+.wh-days {
+  display: grid;
+  gap: 8px;
+}
+.wh-day {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.wh-day:first-child {
+  border-top: 0;
+}
+.wh-day .check {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+}
+.wh-ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.wh-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f6f9f7;
+  border-radius: 12px;
+  padding: 6px 8px;
+}
+.wh-range input {
+  width: auto;
+  padding: 6px 8px;
+}
+.wh-day.off .wh-ranges {
+  opacity: 0.45;
+}
+.wh-settings,
+.off-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+}
+.off-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: #f6f9f7;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.cal .day.dayoff {
+  background: repeating-linear-gradient(135deg, #f8faf9, #f8faf9 6px, #eef2ef 6px, #eef2ef 12px);
+}
+.cal .day {
+  cursor: pointer;
+}
+.cal .tag-off {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+@media (max-width: 760px) {
+  .wh-day {
+    grid-template-columns: 1fr;
+  }
+}

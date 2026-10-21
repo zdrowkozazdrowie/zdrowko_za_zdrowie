@@ -20,7 +20,9 @@ i panel administratora.
 4. **Linki do kwestionariusza** (działają bez logowania i bez maili): każda wizyta ma własny link w panelu
    (szczegóły wizyty → „Link do kwestionariusza”: kopiuj / SMS / WhatsApp / e-mail / nowy link). Kwestionariusz
    bez wizyty: Panel → Kwestionariusze → „Utwórz link”; później można go przypisać do wizyty.
-5. Panel `/admin.html`: wizyty, kalendarz, terminy, klienci, kwestionariusze, log e-maili i podgląd bazy danych.
+5. **Godziny pracy** (Panel → Kalendarz): tygodniowy grafik, długość wizyty i przerwa. Terminy dla klientów tworzą się
+   same na wybrany okres (codziennie dosuwane przez `pg_cron`). Dni wolne i blokady godzin: kliknij dzień w kalendarzu.
+6. Panel `/admin.html`: wizyty, kalendarz, terminy, klienci, kwestionariusze, log e-maili i podgląd bazy danych.
 
 ## Praca lokalnie
 
