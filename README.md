@@ -60,7 +60,7 @@ Adminem zostaje osoba zalogowana na taki adres (z potwierdzonym e-mailem).
 ### 2. Cloudflare Pages
 
 1. Załóż konto na [dash.cloudflare.com](https://dash.cloudflare.com).
-2. **Account ID** (prawa kolumna na stronie głównej konta) → **Variable** `CLOUDFLARE_ACCOUNT_ID`.
+2. **Account ID** (prawa kolumna na stronie głównej konta) → **Variable** (lub Secret) `CLOUDFLARE_ACCOUNT_ID`.
 3. My Profile → API Tokens → Create Token → szablon **„Edit Cloudflare Workers”** (obejmuje Pages) → **Secret** `CLOUDFLARE_API_TOKEN`.
 4. Opcjonalnie **Variable** `CLOUDFLARE_PROJECT` (domyślnie `zdrowko-za-zdrowie` → `https://zdrowko-za-zdrowie.pages.dev`).
    Projekt tworzy się sam przy pierwszym deployu.
