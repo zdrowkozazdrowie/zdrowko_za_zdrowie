@@ -56,10 +56,6 @@ const auth = {
   external_email_enabled: true,
   mailer_otp_length: 6,
   mailer_otp_exp: 3600,
-  mailer_subjects_magic_link: subject,
-  mailer_templates_magic_link_content: template,
-  mailer_subjects_confirmation: subject,
-  mailer_templates_confirmation_content: template,
 };
 if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   Object.assign(auth, {
@@ -78,6 +74,11 @@ if (ownDomain) {
     smtp_admin_email: match ? match[2] : emailFrom,
     smtp_sender_name: match ? match[1] : 'Zdrówko za zdrowie',
     rate_limit_email_sent: 100,
+    // Free tier allows custom templates only with own SMTP. The default template has the link but no code.
+    mailer_subjects_magic_link: subject,
+    mailer_templates_magic_link_content: template,
+    mailer_subjects_confirmation: subject,
+    mailer_templates_confirmation_content: template,
   });
 }
 await call('PATCH', '/config/auth', auth);
