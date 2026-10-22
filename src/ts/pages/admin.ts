@@ -253,9 +253,8 @@ interface Contact {
   email: string | null;
 }
 
-function linkMessage(c: Contact, url: string): string {
-  const hello = c.name ? `Dzień dobry ${c.name.split(' ')[0]},` : 'Dzień dobry,';
-  return `${hello}\nprzesyłam kwestionariusz (ok. 10 minut): ${url}\nProszę o szczere odpowiedzi – nie ma tu dobrych ani złych. Odpowiedzi zapisują się automatycznie, a na końcu można dołączyć wyniki badań.`;
+function linkMessage(_c: Contact, url: string): string {
+  return `Cześć,\nprzesyłam Ci kwestionariusz: ${url}\nPodejdź do niego proszę szczerze – nie ma tu złych odpowiedzi. Przygotuj też wyniki badań, na końcu będzie można je dołączyć.`;
 }
 
 function linkBoxHtml(info: LinkInfo, c: Contact): string {
