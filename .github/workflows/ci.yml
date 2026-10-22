@@ -50,7 +50,6 @@ jobs:
         run: |
           eval "$(npx supabase status -o env | sed 's/^/export /')"
           SUPABASE_URL="$API_URL" SUPABASE_ANON_KEY="$ANON_KEY" npm run build
-      - run: npx playwright install --with-deps chromium
       - name: E2E
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
