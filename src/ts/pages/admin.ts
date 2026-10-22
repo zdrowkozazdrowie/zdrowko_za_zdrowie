@@ -253,8 +253,9 @@ interface Contact {
   email: string | null;
 }
 
-function linkMessage(_c: Contact, url: string): string {
-  return `Cześć,\nprzesyłam Ci kwestionariusz: ${url}\nPodejdź do niego proszę szczerze – nie ma tu złych odpowiedzi. Przygotuj też wyniki badań, na końcu będzie można je dołączyć.`;
+function linkMessage(c: Contact, url: string): string {
+  const name = c.name?.trim().split(/\s+/)[0];
+  return `Cześć${name ? ` ${name}` : ''},\nprzesyłam Ci kwestionariusz: ${url}\nPodejdź do niego proszę szczerze – nie ma tu złych odpowiedzi. Przygotuj też wyniki badań, na końcu będzie można je dołączyć.`;
 }
 
 function linkBoxHtml(info: LinkInfo, c: Contact): string {
