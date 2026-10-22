@@ -255,7 +255,7 @@ interface Contact {
 
 function linkMessage(c: Contact, url: string): string {
   const name = c.name?.trim().split(/\s+/)[0];
-  return `Cześć${name ? ` ${name}` : ''},\nprzesyłam Ci kwestionariusz: ${url}\nPodejdź do niego proszę szczerze – nie ma tu złych odpowiedzi. Przygotuj też wyniki badań, na końcu będzie można je dołączyć.`;
+  return `Cześć${name ? ` ${name}` : ''},\nprzesyłam Ci kwestionariusz: ${url}\nPodejdź do niego proszę szczerze – nie ma tu złych odpowiedzi. Jeśli masz wyniki badań, przygotuj je – na końcu będzie można je dołączyć.`;
 }
 
 function linkBoxHtml(info: LinkInfo, c: Contact): string {
