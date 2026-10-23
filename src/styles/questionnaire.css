@@ -625,3 +625,21 @@ details.sumbox .sum {
   margin-left: auto;
   justify-content: flex-end;
 }
+.cheer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--leaf-soft);
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 15px;
+  animation: in 0.5s ease both;
+}
+.cheer .ce {
+  font-size: 26px;
+  line-height: 1;
+  animation: pop 0.6s ease;
+}
+.cheer b {
+  color: var(--leaf);
+}

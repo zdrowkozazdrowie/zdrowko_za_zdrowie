@@ -43,6 +43,16 @@ export interface Engine {
 
 const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, sel: string): T | null => root.querySelector<T>(sel);
 
+/** Short encouragement shown on the first question of each section. */
+const CHEERS: Record<string, [string, string]> = {
+  Zdrowie: ['💪', 'Dobry start! Teraz kilka pytań o zdrowie.'],
+  Używki: ['☕', 'Świetnie Ci idzie! Teraz krótko o napojach i używkach.'],
+  'Twój dzień': ['🌤️', 'Tak trzymaj! Teraz o tym, jak wygląda Twój dzień.'],
+  'Smaki i zmysły': ['😋', 'Czas na najprzyjemniejszą część – smaki i ulubione jedzenie.'],
+  'Ty i jedzenie': ['🌱', 'Jeszcze trochę! Kilka pytań o Twoje nawyki.'],
+  'Na koniec': ['🏁', 'Ostatnie pytanie – prawie gotowe!'],
+};
+
 export function createEngine(opts: EngineOptions): Engine {
   const { stage, top } = opts;
   const S = opts.state;
@@ -109,7 +119,14 @@ export function createEngine(opts: EngineOptions): Engine {
     ($(top, '#sec') as HTMLElement).textContent = q.s;
     ($(top, '#count') as HTMLElement).textContent = `${S.i + 1} / ${QUESTIONS.length}`;
     ($(top, '#bar') as HTMLElement).style.width = `${(S.i / QUESTIONS.length) * 100}%`;
-    let h = `<section class="card" aria-live="polite"><h2>${esc(R(q.q))}</h2>${q.hint ? `<p class="hint">${esc(R(q.hint))}</p>` : ''}`;
+    const prev = QUESTIONS[S.i - 1];
+    const cheer = prev && prev.s !== q.s ? CHEERS[q.s] : undefined;
+    const pct = Math.round((S.i / QUESTIONS.length) * 100);
+    let h = `<section class="card" aria-live="polite">${
+      cheer
+        ? `<div class="cheer"><span class="ce">${cheer[0]}</span><span>${esc(cheer[1])} <b>${pct}% za Tobą.</b></span></div>`
+        : ''
+    }<h2>${esc(R(q.q))}</h2>${q.hint ? `<p class="hint">${esc(R(q.hint))}</p>` : ''}`;
     const v = S.a[q.id];
 
     if (q.type === 'single' || q.type === 'multi') {
